@@ -1,0 +1,45 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<form action="" method="post">
+  {% csrf_token %}
+<p>
+Are you sure you want to execute this action on the selected items?
+</p>  
+<p> List of Users </p>
+<ul>
+  {% for user in users %}
+    <li>
+      {{ user }} {{ user.profile }} {{ user.email }}
+    </li>
+    <input type="hidden" name="_selected_action" value="{{ user.pk }}" />
+  {% endfor %}
+</ul>
+
+<p> List of social accounts <p>
+<ul>
+  {% for user in users %}
+    <li>
+	{{ user }}
+	<ul>
+      {% for acc in user.socialaccount_set.all %}
+	    <li>
+          {{ acc.provider }} {{ acc }}
+	    </li>
+      {% endfor %}
+	</ul>
+
+    </li>
+  {% endfor %}
+</ul>
+      
+
+<p> List of tourns and number of perdictions </p>
+
+{{ somthing }}
+
+  <input type="hidden" name="action" value="merge_users" />
+  <input type="submit" name="apply" value="Merge accounts"/>
+</form>
+{% endblock %}
+

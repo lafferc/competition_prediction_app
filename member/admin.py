@@ -1,5 +1,10 @@
 from django.contrib import admin
+from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from member.models import Profile, Organisation, Competition, Ticket
+
 import logging
 
 g_logger = logging.getLogger(__name__)
@@ -66,6 +71,31 @@ class ProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'test_features_enabled')
 
 
+class CustomUserAdmin(UserAdmin):
+    actions = ['merge_users']
+
+    def merge_users(self, request, queryset):
+        if 'apply' in request.POST:
+            # The user clicked submit on the intermediate form.
+            # Perform our update action:
+
+            # Redirect to our admin view after our update has 
+            # completed with a nice little info message saying 
+            # our models have been updated:
+            self.message_user(request,
+                              "Merged {} users".format(queryset.count()))
+            return HttpResponseRedirect(request.get_full_path())
+        # TODO get list of tourns and count of matches
+
+        return render(request,
+                      'admin/merge_users.html',
+                      context={'users':queryset})
+
+
+
 admin.site.register(Profile)
 admin.site.register(Organisation)
 admin.site.register(Competition, CompetitionAdmin)
+
+admin.site.unregister(User)
+admin.site.register(User, CustomUserAdmin)
