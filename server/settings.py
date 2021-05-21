@@ -231,12 +231,12 @@ SOCIALACCOUNT_PROVIDERS = {
         'EXCHANGE_TOKEN': True,
         'VERIFIED_EMAIL': False,
         'VERSION': 'v7.0',
-    }
+    },
     'reddit': {
         'AUTH_PARAMS': {'duration': 'permanent'},
         'SCOPE': ['identity', 'submit'],
         'USER_AGENT': 'django:myappid:%s (by /u/yourredditname)' % APP_VERSION_NUMBER,
-    }
+    },
 }
 
 # AllAuth settings
