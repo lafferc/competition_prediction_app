@@ -4,7 +4,7 @@ media_dir = /var/www/media/
 install:
 	echo "Installing " `cat VERSION`
 	service httpd stop
-	pip install -r requirements.txt
+	pip3 install -r requirements.txt
 	mkdir $(target_dir)
 	mkdir $(media_dir)
 	rsync -rv --exclude=".*" . $(target_dir)
@@ -18,7 +18,7 @@ install:
 update:
 	echo "Upgrading to " `cat VERSION`
 	service httpd stop
-	pip install -r requirements.txt
+	pip3 install -r requirements.txt
 	rsync -rv --exclude=".*" . $(target_dir)
 	$(target_dir)/manage.py collectstatic --noinput
 	cd $(target_dir); ./manage.py migrate; chown apache:apache *
@@ -26,5 +26,5 @@ update:
 
 dev:
 	echo "Installing dev env"
-	pip install -r requirements.txt
+	pip3 install -r requirements.txt
 	./manage.py migrate
