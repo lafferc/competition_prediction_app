@@ -21,11 +21,22 @@
     <div data-role="page" data-theme="a">
         <div data-role="header" data-position="fixed" data-theme="a"> 
             <h1>{{ request.get_host }}</h1>
+{% if user.is_authenticated %}
             <a href="#nav-panel" data-icon="bars">Menu</a>
-{% if user.is_staff %}
+    {% if user.is_staff %}
             <a href="/admin" data-icon="gear">Admin</a>
+    {% endif %}
 {% endif %}
 {% block nav %}
+{% if not user.is_authenticated %}
+<div data-role="navbar">
+    <ul>
+        <li><a href="{% url 'account_login' %}">Login</a></li>
+        <li><a href="{% url 'about' %}">About Us</a></li>
+        <li><a href="{% url 'gdpr' %}">GDPR and Cookie Policy</a></li>
+    </ul>
+</div>
+{% endif %}
 {% endblock %}
         </div><!-- /header -->
 
@@ -49,23 +60,16 @@
                 <li data-icon="home"><a href="{% url 'index' %}">Home</a></li>
                 <li><a href="{% url 'about' %}">About Us</a></li>
                 <li><a href="{% url 'gdpr' %}">GDPR Policy</a></li>
-{% if user.is_authenticated %}
                 <li data-icon="user"><a href="{% url 'member:profile' %}">Profile</a></li>
                 <li data-icon="user"><a href="{% url 'account_change_password' %}">Change Password</a></li>
                 <li data-icon="user"><a href="{% url 'socialaccount_connections' %}">Manage Soical Accounts</a></li>
-{% else %}
-                <li><a href="{% url 'account_login' %}">Login</a></li>
-                <li><a href="{% url 'account_signup' %}">Sign up</a></li>
-{% endif %}
 {% if user.is_superuser %}
                 <li><a href="{% url 'member:announcement' %}">Make Announcement</a></li>
 {% endif %}
 {% block menu %}
 {% endblock %}
-{% if user.is_authenticated %}
                 <li><a href="{% url 'member:use_token' %}">Enter Competition Code</a></li>
                 <li data-icon="lock"><a href="{% url 'account_logout' %}">Logout</a></li>
-{% endif %}
             </ul>
         </div><!-- /panel -->
 {% if user.is_superuser %}
