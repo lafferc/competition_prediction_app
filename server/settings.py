@@ -50,6 +50,7 @@ INSTALLED_APPS = (
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.twitter',
     # 'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.reddit',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -208,6 +209,9 @@ SITE_ID = 1
 
 LOGOUT_REDIRECT_URL = '/'
 
+with open(os.path.join(BASE_DIR, "VERSION")) as v_file:
+    APP_VERSION_NUMBER = v_file.read().strip()
+
 # Provider specific settings SOCIALACCOUNT_PROVIDERS = { 'google': { # For each OAuth based provider, either add a ``SocialApp`` # (``socialaccount`` app) containing the required client # credentials, or list them here: 'APP': { 'client_id': '123', 'secret': '456', 'key': '' } } }
 SOCIALACCOUNT_PROVIDERS = {
     'facebook': {
@@ -227,7 +231,12 @@ SOCIALACCOUNT_PROVIDERS = {
         'EXCHANGE_TOKEN': True,
         'VERIFIED_EMAIL': False,
         'VERSION': 'v7.0',
-    }
+    },
+    'reddit': {
+        'AUTH_PARAMS': {'duration': 'permanent'},
+        'SCOPE': ['identity', 'submit'],
+        'USER_AGENT': 'django:myappid:%s (by /u/yourredditname)' % APP_VERSION_NUMBER,
+    },
 }
 
 # AllAuth settings
@@ -238,6 +247,8 @@ ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = False
 ACCOUNT_LOGOUT_ON_GET = True
 # ACCOUNT_USER_DISPLAY = user.profile.get_name
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
+ACCOUNT_EMAIL_CONFIRMATION_HMAC = False
+ACCOUNT_EMAIL_CONFIRMATION_COOLDOWN = 14400 # 4hrs
 
 ACCOUNT_FORMS = {
     'signup': 'server.forms.SignUpForm',
@@ -245,6 +256,3 @@ ACCOUNT_FORMS = {
 SOCIALACCOUNT_FORMS = {
     'signup': 'server.forms.SocialSignupForm'
 }
-
-with open(os.path.join(BASE_DIR, "VERSION")) as v_file:
-    APP_VERSION_NUMBER = v_file.read()
