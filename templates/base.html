@@ -20,7 +20,7 @@
 <body>
     <div data-role="page" data-theme="a">
         <div data-role="header" data-position="fixed" data-theme="a"> 
-            <h1>{{ site_name }}</h1>
+            <h1>{{ request.get_host }}</h1>
             <a href="#nav-panel" data-icon="bars">Menu</a>
 {% if user.is_staff %}
             <a href="/admin" data-icon="gear">Admin</a>
