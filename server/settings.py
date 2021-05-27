@@ -210,7 +210,7 @@ SITE_ID = 1
 LOGOUT_REDIRECT_URL = '/'
 
 with open(os.path.join(BASE_DIR, "VERSION")) as v_file:
-    APP_VERSION_NUMBER = v_file.read()
+    APP_VERSION_NUMBER = v_file.read().strip()
 
 # Provider specific settings SOCIALACCOUNT_PROVIDERS = { 'google': { # For each OAuth based provider, either add a ``SocialApp`` # (``socialaccount`` app) containing the required client # credentials, or list them here: 'APP': { 'client_id': '123', 'secret': '456', 'key': '' } } }
 SOCIALACCOUNT_PROVIDERS = {
