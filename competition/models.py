@@ -78,7 +78,6 @@ class Tournament(models.Model):
     sport = models.ForeignKey(Sport)
     bonus = models.DecimalField(max_digits=5, decimal_places=2, default=2)
     draw_bonus = models.DecimalField(max_digits=5, decimal_places=2, default=1)
-    late_get_bonus = models.BooleanField(default=False)
     state = models.IntegerField(default=PENDING,
                                 choices=((PENDING, "Pending"),
                                          (ACTIVE, "Active"),
@@ -459,7 +458,7 @@ class Prediction(PredictionBase):
         return "%s: %s" % (self.user, self.match)
 
     def bonus(self, result):
-        if self.late and not self.match.tournament.late_get_bonus:
+        if self.late:
             return 0
         return super(Prediction, self).bonus(result)
 

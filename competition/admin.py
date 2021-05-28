@@ -77,14 +77,14 @@ class TournamentAdmin(admin.ModelAdmin):
     )
     fieldsets = (
         (None, {
-            'fields': ('name', 'sport', 'state', 'bonus', 'draw_bonus', 'late_get_bonus', 'year',
+            'fields': ('name', 'sport', 'state', 'bonus', 'draw_bonus', 'year',
                        'winner', 'add_matches', 'test_features_enabled', 'draw_definition')
         }),
     )
 
     def get_readonly_fields(self, request, obj):
         if obj:
-            return ('sport', 'bonus', 'late_get_bonus', 'draw_bonus',
+            return ('sport', 'bonus', 'draw_bonus',
                     'winner', 'state', 'year', 'test_features_enabled')
         return ('winner')
 
@@ -93,7 +93,7 @@ class TournamentAdmin(admin.ModelAdmin):
             if not obj or obj.state not in [Tournament.FINISHED, Tournament.ARCHIVED]:
                 return self.fieldsets
         return ((None, {'fields': ('name', 'sport', 'state', 'bonus', 'draw_bonus',
-                                   'late_get_bonus', 'year', 'winner', 'draw_definition')}),)
+                                   'year', 'winner', 'draw_definition')}),)
 
     def participant_count(self, obj):
         return obj.participant_set.count()
