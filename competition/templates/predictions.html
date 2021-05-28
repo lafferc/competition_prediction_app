@@ -1,5 +1,7 @@
 {% extends "competition_base.html" %}
 
+{% load static %}
+
 {% block content %}
 {% if not other_user and user_score %}
     <p>Your current score is {{ user_score }}</p>
@@ -47,6 +49,7 @@
         {% endif %}
             <td>{{ prediction.match.score }}</td>
             <td>{{ prediction.score }}</td>
+            <td style="border:0"><img src="{% static "/admin/img/" %}icon-{% if prediction.late %}unknown{% elif prediction.correct %}yes{% else %}no{% endif %}.svg"></td>
         </tr>
     {% endfor %}
     </table>

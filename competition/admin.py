@@ -170,11 +170,13 @@ class PredictionAdmin(admin.ModelAdmin):
     list_filter = (
         'match__tournament',
         ('user', admin.RelatedOnlyFieldListFilter),
+        'late',
+        'correct',
     )
 
     def get_readonly_fields(self, request, obj):
         if obj:
-            return ('user', 'match', 'prediction', 'margin', 'score', "late")
+            return ('user', 'match', 'prediction', 'margin', 'score', "late", "correct")
         return ('margin', 'score', "late")
 
 

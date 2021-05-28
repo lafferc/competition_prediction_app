@@ -427,6 +427,7 @@ class PredictionBase(models.Model):
     prediction = models.DecimalField(default=0, max_digits=5, decimal_places=2)
     score = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
     margin = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
+    correct = models.NullBooleanField()
 
     def calc_score(self, result):
         self.margin = abs(result - self.prediction)
