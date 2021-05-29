@@ -256,7 +256,7 @@ def join(request, tour_name):
             (1 - bonus),
             (2 - bonus),
             (0.5 - bonus),
-            (17.5 - (3 * bonus + bonus * float(tournament.draw_bonus))),
+            (19.5 - (3 * bonus + bonus * float(tournament.draw_bonus))),
         ],
     }
     return HttpResponse(template.render(context, request))
@@ -328,7 +328,7 @@ def rules(request, tour_name):
             (1 - bonus),
             (2 - bonus),
             (0.5 - bonus),
-            (17.5 - (3 * bonus + bonus * float(tournament.draw_bonus))),
+            (19.5 - (3 * bonus + bonus * float(tournament.draw_bonus))),
         ],
     }
     return HttpResponse(template.render(context, request))

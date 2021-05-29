@@ -50,7 +50,7 @@
         {% endif %}
             <td>{{ prediction.match.score }}</td>
             <td>{{ prediction.score }}</td>
-            <td style="border:0"><img src="{% static "/admin/img/" %}icon-{% if prediction.late %}unknown{% elif prediction.correct %}yes{% else %}no{% endif %}.svg"></td>
+            <td class="{{ prediction.css_class_correct }}"></td>
         </tr>
     {% endfor %}
     </table>

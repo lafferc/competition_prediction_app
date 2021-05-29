@@ -57,6 +57,18 @@
 			    <td>predicting a two or three {{TOURNAMENT.sport.scoring_unit}}
                                     win for the away team.</td>
 		    </tr>
+		    <tr>
+			    <td>7</td>
+			    <td><input type="text" readonly></td>
+			    <td><a href="#">Home Team Vs Away Team</a></td>
+			    <td>prediction not filled in.</td>
+		    </tr>
+		    <tr>
+			    <td>8</td>
+			    <td><input type="text" readonly></td>
+			    <td><a href="#">Home Team Vs Away Team</a></td>
+			    <td>prediction not filled in.</td>
+		    </tr>
 	    </table>
     </div>
 {% if TOURNAMENT.draw_bonus == 1 %}
@@ -81,6 +93,7 @@
                         <th>Prediction</th>
                         <th>Result</th>
                         <th>Score</th>
+                        <th class="prediction_correct"></th>
                         <th>comment</th>
                 </tr>
                 <tr>
@@ -89,6 +102,7 @@
                         <td>1</td>
                         <td>2</td>
                         <td>{{example_scores.0|floatformat:2}}</td>
+                        <td class="prediction_correct"></td>
                         <td>correctly predicting a home win but out by 1
                                 {{TOURNAMENT.sport.scoring_unit}}.</td>
                 </tr>
@@ -98,6 +112,7 @@
                         <td>0</td>
                         <td>0</td>
                         <td>-{{draw_bonus_value|floatformat:2}}</td>
+                        <td class="prediction_correct"></td>
                         <td>correctly predicting a draw</td>
                 </tr>
                 <tr>
@@ -106,6 +121,7 @@
                         <td>-1</td>
                         <td>-3</td>
                         <td>{{example_scores.1|floatformat:2}}</td>
+                        <td class="prediction_correct"></td>
                         <td>correctly predicting a away win but out by 2
                                 {{TOURNAMENT.sport.scoring_unit}}s.</td>
                 </tr>
@@ -115,6 +131,7 @@
                         <td>5</td>
                         <td>-2</td>
                         <td>{{7|floatformat:2}}</td>
+                        <td class="prediction_incorrect"></td>
                         <td>The away team won by two making the prediction wrong
                                 by seven {{TOURNAMENT.sport.scoring_unit}}s</td>
                 </tr>
@@ -124,6 +141,7 @@
                         <td>-7</td>
                         <td>0</td>
                         <td>{{7|floatformat:2}}</td>
+                        <td class="prediction_incorrect"></td>
                         <td>The match was a draw making the prediction wrong by
                                 seven {{TOURNAMENT.sport.scoring_unit}}s</td>
                 </tr>
@@ -133,9 +151,29 @@
                         <td>-2.5</td>
                         <td>-3</td>
                         <td>{{example_scores.2|floatformat:2}}</td>
+                        <td class="prediction_correct"></td>
                         <td>The away team won by 3 {{TOURNAMENT.sport.scoring_unit}}s
                                 and prediction is only out by half a
                                 {{TOURNAMENT.sport.scoring_unit}}.</td>
+                </tr>
+                <tr>
+                        <td>7</td>
+                        <td><a href="#">Home Team Vs Away Team</a></td>
+                        <td>0</td>
+                        <td>2</td>
+                        <td>2</td>
+                        <td class="prediction_missed"></td>
+                        <td>The prediction was not entered before the match started and a default
+                            draw prediction is added.</td>
+                </tr>
+                <tr>
+                        <td>8</td>
+                        <td><a href="#">Home Team Vs Away Team</a></td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td class="prediction_missed"></td>
+                        <td>No bonus is given to missed predications when the match is a draw.</td>
                 </tr>
         </table>
 
