@@ -198,7 +198,7 @@ class AnnouncementTest(TestCase):
         login = self.client.login(username='testuser1', password='test123')
         self.assertTrue(login)
 
-    def test_nnouncement_test_email(self):
+    def test_announcement_test_email(self):
         response = self.client.post(self.url, {
             'subject': "Test subject",
             'message': "test email body",
@@ -215,7 +215,7 @@ class AnnouncementTest(TestCase):
 
         self.assertTrue("test email body" in email.body)
 
-    def test_nnouncement_email(self):
+    def test_announcement_email(self):
         response = self.client.post(self.url, {
             'subject': "Test subject",
             'message': "test email body",

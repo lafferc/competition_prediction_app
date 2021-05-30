@@ -9,7 +9,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core import mail
 from django.utils.translation import gettext as _
 from .models import Ticket, Competition
-from .forms import ProfileEditForm, NameChangeForm
+from .forms import ProfileEditForm, NameChangeForm, AnnouncementForm
 from competition.models import Participant
 import logging
 from allauth.socialaccount.models import SocialAccount, SocialApp
@@ -96,17 +96,11 @@ def use_token(request):
 def announcement(request):
     current_site = get_current_site(request)
     if request.method == 'POST':
-        subject = ""
-        body = ""
-        try:
-            subject = request.POST["subject"]
-            body = request.POST["message"]
-            test_flag = request.POST["test_email"] == "true"
-        except KeyError:
-            test_flag = False
+        form = AnnouncementForm(request.POST)
 
-        if not len(body) or not len(subject):
-            raise Http404("Subject or body missing")
+        subject = form["subject"]
+        body = form["body"]
+        test_flag = form["test_email"]
 
         if test_flag:
             user_list = [request.user]
@@ -139,9 +133,12 @@ def announcement(request):
 
         return HttpResponse(template.render(context, request))
 
+    form = AnnouncementForm()
+
     template = loader.get_template('announcement.html')
     context = {
         'site_name': current_site.name,
+        'form': form,
     }
 
     return HttpResponse(template.render(context, request))

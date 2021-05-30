@@ -13,3 +13,9 @@ class ProfileEditForm(forms.ModelForm):
     class Meta:
         model = Profile
         exclude = ('user', 'dob', 'test_features_enabled')
+
+
+class AnnouncementForm(forms.Form):
+    subject = forms.CharField(max_length=100)
+    body = forms.CharField(widget=forms.Textarea)
+    test_email = forms.BooleanField(required=False, help_text="Test email (Send only to me)")
