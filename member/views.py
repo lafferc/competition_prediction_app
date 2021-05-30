@@ -98,42 +98,44 @@ def announcement(request):
     if request.method == 'POST':
         form = AnnouncementForm(request.POST)
 
-        subject = form["subject"]
-        body = form["body"]
-        test_flag = form["test_email"]
+        if form.is_valid():
 
-        if test_flag:
-            user_list = [request.user]
-        else:
-            user_list = User.objects.all()
+            subject = form.cleaned_data["subject"]
+            body = form.cleaned_data["message"]
+            test_flag = form.cleaned_data["test_email"]
 
-        n_sent = 0
-        connection = mail.get_connection()
-        connection.open()
-        for user in user_list:
-            message = loader.render_to_string('announcement_email.html', {
-                'user': user,
-                'body': body,
+            if test_flag:
+                user_list = [request.user]
+            else:
+                user_list = User.objects.all()
+
+            n_sent = 0
+            connection = mail.get_connection()
+            connection.open()
+            for user in user_list:
+                message = loader.render_to_string('announcement_email.html', {
+                    'user': user,
+                    'body': body,
+                    'site_name': current_site.name,
+                    'site_domain': current_site.name,
+                    'protocol': 'https' if request.is_secure() else 'http',
+                })
+                if user.profile.email_user(subject,
+                                           message,
+                                           connection=connection):
+                    n_sent += 1
+
+            connection.close()
+
+            template = loader.get_template('announcement_sent.html')
+            context = {
                 'site_name': current_site.name,
-                'site_domain': current_site.name,
-                'protocol': 'https' if request.is_secure() else 'http',
-            })
-            if user.profile.email_user(subject,
-                                       message,
-                                       connection=connection):
-                n_sent += 1
+                'user_list_len': n_sent,
+            }
 
-        connection.close()
-
-        template = loader.get_template('announcement_sent.html')
-        context = {
-            'site_name': current_site.name,
-            'user_list_len': n_sent,
-        }
-
-        return HttpResponse(template.render(context, request))
-
-    form = AnnouncementForm()
+            return HttpResponse(template.render(context, request))
+    else:
+        form = AnnouncementForm()
 
     template = loader.get_template('announcement.html')
     context = {
