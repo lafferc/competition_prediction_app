@@ -67,6 +67,7 @@ class MemberViewTest(TestCase):
             'first_name': 'Test1',
             'last_name': 'User',
             'display_name_format': 0,
+            'social_display_name_format': 0,
             'can_receive_emails': 1,
             'email_on_new_competition': 1,
             'cookie_consent': 0,
@@ -78,6 +79,7 @@ class MemberViewTest(TestCase):
 
         response = self.client.post(url, {
             'display_name_format': 1,
+            'social_display_name_format': 0,
             'can_receive_emails': 1,
             'email_on_new_competition': 1,
             'cookie_consent': 0,
@@ -89,6 +91,7 @@ class MemberViewTest(TestCase):
 
         response = self.client.post(url, {
             'display_name_format': 2,
+            'social_display_name_format': 0,
             'can_receive_emails': 1,
             'email_on_new_competition': 1,
             'cookie_consent': 0,

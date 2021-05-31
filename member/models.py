@@ -20,7 +20,14 @@ class Profile(models.Model):
         choices=((0, "Full Name"),
                  (1, "username"),
                  (2, "user_id")),
-        help_text="This how other users will see you name displayed")
+        help_text="This how other users will see your name displayed")
+    social_display_name_format = models.IntegerField(
+        choices=((0, "username"),
+                 (1, "display name"),
+                 (2, "social account username or username"),
+                 (3, "social account username or display name")),
+        default=2,
+        help_text="This is how your name will be displayed on any 3rd party sites e.g. social media sites. Username is your username for this site. Display name is how your name is normally displayed on this site, format chosen by you. Social account username is the username of the social account you have linked to your account on this site.")
     can_receive_emails = models.BooleanField(
         default=True,
         help_text="Global email setting, if false the user will not receive any emails")
