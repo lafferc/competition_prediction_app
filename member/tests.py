@@ -185,12 +185,15 @@ class AnnouncementTest(TestCase):
         cls.user.is_superuser = True
         cls.user.save()
 
+        cls.other_users = []
         user = User.objects.create_user(username='noemail', password='test123')
         user.save()
+        cls.other_users.append(user)
 
         for i in range(3):
-            user = User.objects.create_user(username='user%d' % i, password='test123', email='user%d@example.com')
+            user = User.objects.create_user(username='user%d' % i, password='test123', email='user%d@example.com' % i)
             user.save()
+            cls.other_users.append(user)
 
         cls.url = reverse('member:announcement')
 
@@ -216,18 +219,46 @@ class AnnouncementTest(TestCase):
         self.assertTrue("test email body" in email.body)
 
     def test_announcement_email(self):
+        expected_emails = User.objects.exclude(email__exact='').values_list('email', flat=True)
+
         response = self.client.post(self.url, {
             'subject': "Test subject",
             'message': "test email body",
         })
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'announcement_sent.html')
-        self.assertEqual(response.context['user_list_len'], 4)
+        self.assertEqual(response.context['user_list_len'], len(expected_emails))
 
-        self.assertEqual(len(mail.outbox), 4)
+        self.assertEqual(len(mail.outbox), len(expected_emails))
+        self.assertEqual(set([e.to[0] for e in mail.outbox]), set(expected_emails))
         email = mail.outbox[0]
 
         self.assertEqual(email.subject, "Test subject")
 
         self.assertTrue("test email body" in email.body)
 
+    def test_announcement_email_tourn(self):
+        sport = Sport.objects.create(name='sport')
+        tourn = Tournament.objects.create(name='active_tourn', sport=sport, state=Tournament.ACTIVE)
+
+        for user in self.other_users[2:]:
+            Participant.objects.create(user=user, tournament=tourn)
+
+        expected_emails = tourn.participants.values_list('email', flat=True)
+        
+        response = self.client.post(self.url, {
+            'subject': "Test subject",
+            'message': "test email body",
+            'tournament': tourn.pk,
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'announcement_sent.html')
+
+        self.assertEqual(response.context['user_list_len'], len(expected_emails))
+        self.assertEqual(len(mail.outbox), len(expected_emails))
+        self.assertEqual(set([e.to[0] for e in mail.outbox]), set(expected_emails))
+
+        email = mail.outbox[0]
+        self.assertEqual(email.subject, "Test subject")
+        self.assertTrue("test email body" in email.body)

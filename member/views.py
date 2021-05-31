@@ -103,9 +103,12 @@ def announcement(request):
             subject = form.cleaned_data["subject"]
             body = form.cleaned_data["message"]
             test_flag = form.cleaned_data["test_email"]
+            tourn = form.cleaned_data["tournament"]
 
             if test_flag:
                 user_list = [request.user]
+            elif tourn is not None:
+                user_list = tourn.participants.all()
             else:
                 user_list = User.objects.all()
 
