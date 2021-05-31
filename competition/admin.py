@@ -43,33 +43,11 @@ class BenchmarkInline(admin.TabularInline):
         return False
 
 
-def pop_leaderboard(modeladmin, request, queryset):
-    g_logger.debug("pop_leaderboard(%r, %r, %r)", modeladmin, request, queryset)
-    for tournament in queryset:
-        tournament.update_table()
-
-
-def close_tournament(modeladmin, request, queryset):
-    g_logger.debug("close_tournament(%r, %r, %r)", modeladmin, request, queryset)
-    for tournament in queryset:
-        tournament.close(request)
-
-
-def open_tournament(modeladmin, request, queryset):
-    g_logger.debug("open_tournament(%r, %r, %r)", modeladmin, request, queryset)
-    for tournament in queryset:
-        tournament.open(request)
-
-
-def archive_tournament(modeladmin, request, queryset):
-    queryset.update(state=Tournament.ARCHIVED)
-
-
 class TournamentAdmin(admin.ModelAdmin):
     list_display = ('name', 'participant_count', 'match_count')
     inlines = (BenchmarkInline, ParticipantInline,)
-    actions = [pop_leaderboard, close_tournament,
-               open_tournament, archive_tournament]
+    actions = ['pop_leaderboard', 'close_tournament',
+               'open_tournament', 'archive_tournament']
     list_filter = (
         ('sport', admin.RelatedOnlyFieldListFilter),
         "state",
@@ -104,16 +82,23 @@ class TournamentAdmin(admin.ModelAdmin):
     def get_inline_instances(self, request, obj=None):
         return obj and super(TournamentAdmin, self).get_inline_instances(request, obj) or []
 
+    def pop_leaderboard(self, request, queryset):
+        g_logger.debug("pop_leaderboard(%r, %r, %r)", self, request, queryset)
+        for tournament in queryset:
+            tournament.update_table()
 
-def calc_match_result(modeladmin, request, queryset):
-    for match in queryset:
-        if match.score is None:
-            continue
-        match.tournament.check_predictions(match)
+    def close_tournament(self, request, queryset):
+        g_logger.debug("close_tournament(%r, %r, %r)", self, request, queryset)
+        for tournament in queryset:
+            tournament.close(request)
 
+    def open_tournament(self, request, queryset):
+        g_logger.debug("open_tournament(%r, %r, %r)", self, request, queryset)
+        for tournament in queryset:
+            tournament.open(request)
 
-def postpone(modeladmin, request, queryset):
-    queryset.update(postponed=True)
+    def archive_tournament(self, request, queryset):
+        queryset.update(state=Tournament.ARCHIVED)
 
 
 class MatchAdmin(admin.ModelAdmin):
@@ -122,7 +107,7 @@ class MatchAdmin(admin.ModelAdmin):
         "postponed",
         ('tournament', admin.RelatedOnlyFieldListFilter),
     )
-    actions = [calc_match_result, postpone]
+    actions = ['calc_match_result', 'postpone']
     fieldsets = (
         (None, {
             'fields': ('tournament', 'match_id', 'home_team', 'home_team_winner_of',
@@ -162,6 +147,15 @@ class MatchAdmin(admin.ModelAdmin):
                 tournament__state__in=[Tournament.PENDING, Tournament.ACTIVE]
             ).filter(score=None)
         return super(MatchAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def calc_match_result(self, request, queryset):
+        for match in queryset:
+            if match.score is None:
+                continue
+            match.tournament.check_predictions(match)
+
+    def postpone(self, request, queryset):
+        queryset.update(postponed=True)
 
 
 class PredictionAdmin(admin.ModelAdmin):
