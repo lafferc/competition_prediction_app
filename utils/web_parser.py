@@ -11,7 +11,7 @@ def get_match(team_str):
     try:
         return match_by_str[team_str]
     except KeyError:
-        print "failed to find %s" % team_str
+        print("failed to find %s" % team_str)
 
 
 def add_match(match):
@@ -38,20 +38,23 @@ def add_match(match):
         match_by_str[" / ".join(perm)] = match
 
 
-def parse_matches(soup, rows, curr_id=1, tz_delta=None, debug=False):
+def parse_matches(soup, rows, comps, curr_id=1, tz_delta=None, debug=False):
     for match_li in soup.find_all("li"):
         if "football" not in match_li["class"]:
             if debug:
                 print("skipping li, class:%s" % match_li["class"])
             continue
         h3_text = match_li.parent.find_previous_sibling('h3').text
-        if "Senior" not in h3_text:
+        for name in comps:
+            if name in h3_text:
+                break
+        else:
             if debug:
-                print("skipping li, Senior not in previous h3: %s" % h3_text)
+                print("skipping li, none of the following %r are in previous h3: %s" % (comps, h3_text))
             continue
 
         row = {
-            'match_id': curr_id
+            'match_id': curr_id,
         }
         date = match_li["data-date"]
         if match_li.a is None:
@@ -118,6 +121,10 @@ if __name__ == "__main__" :
                         type=int,
                         default=1,
                         help='number of months from data to process. Default 1')
+    parser.add_argument("--comps",
+                        nargs="+",
+                        default=["Senior", "Roinn 1", "Roinn 2"],
+                        help='list of competition names to check for. Default "Senior" "Roinn 1" "Roinn 2"')
 
     args = parser.parse_args()
 
@@ -143,6 +150,6 @@ if __name__ == "__main__" :
         page = urllib2.urlopen(url % date)
         soup = BeautifulSoup(page, features="html.parser")
 
-        next_id = parse_matches(soup, matches, next_id, tz_diff, debug=args.debug)
+        next_id = parse_matches(soup, matches, args.comps, next_id, tz_diff, debug=args.debug)
 
     matches_to_csv(matches, args.out_filename)
