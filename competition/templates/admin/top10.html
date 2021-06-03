@@ -1,0 +1,20 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+
+<h1> Showing Top 10 for the following matches </h1>
+<ul>
+    {% for match in matches %}
+    <li> {{ match }} {{ match.score }} </li>
+    {% endfor %}
+</ul>
+
+<h2> The Top 10 </h2>
+<ul>
+    {% for p in top_10 %}
+    <li> {{ p.user }} | {{ p.score__sum }} | {{ p.margin__avg|floatformat:2 }}</li>
+    {% endfor %}
+</ul>
+
+
+{% endblock %}

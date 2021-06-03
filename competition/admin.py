@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db.models import Avg, Sum
+from django.shortcuts import render
 from competition.models import Team, Tournament, Match, Prediction, Participant
 from competition.models import Sport, Benchmark, BenchmarkPrediction
 import logging
@@ -107,7 +109,7 @@ class MatchAdmin(admin.ModelAdmin):
         "postponed",
         ('tournament', admin.RelatedOnlyFieldListFilter),
     )
-    actions = ['calc_match_result', 'postpone']
+    actions = ['calc_match_result', 'postpone', 'show_top_ten']
     fieldsets = (
         (None, {
             'fields': ('tournament', 'match_id', 'home_team', 'home_team_winner_of',
@@ -156,6 +158,19 @@ class MatchAdmin(admin.ModelAdmin):
 
     def postpone(self, request, queryset):
         queryset.update(postponed=True)
+
+    def show_top_ten(self, request, queryset):
+
+        top_10 = (Prediction.objects.filter(match__in=queryset)
+                  .values('user')
+                  .annotate(Sum('score'), Avg('margin'))
+                  .order_by('score__sum')[:10])
+
+        return render(request,
+                      'admin/top10.html',
+                      context={'matches': queryset,
+                               'top_10': top_10,
+                               })
 
 
 class PredictionAdmin(admin.ModelAdmin):
