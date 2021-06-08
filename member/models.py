@@ -8,19 +8,36 @@ import smtplib
 import string
 import random
 from competition.models import Tournament, Participant
+from allauth.socialaccount.models import SocialAccount
 
 g_logger = logging.getLogger(__name__)
 
 
 class Profile(models.Model):
+    DNF_FULL = 0
+    DNF_USR = 1
+    DNF_ID = 2
+
+    SDNF_USR = 0
+    SDNF_DN = 1
+    SDNF_SAU_USR = 2
+    SDNF_SAU_DN = 3
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     dob = models.DateField(null=True, blank=True)
     display_name_format = models.IntegerField(
-        default=0,
-        choices=((0, "Full Name"),
-                 (1, "username"),
-                 (2, "user_id")),
-        help_text="This how other users will see you name displayed")
+        default=DNF_FULL,
+        choices=((DNF_FULL, "Full Name"),
+                 (DNF_USR, "username"),
+                 (DNF_ID, "user_id")),
+        help_text="This how other users will see your name displayed")
+    social_display_name_format = models.IntegerField(
+        choices=((SDNF_USR, "username"),
+                 (SDNF_DN, "display name"),
+                 (SDNF_SAU_USR, "social account username or username"),
+                 (SDNF_SAU_DN, "social account username or display name")),
+        default=SDNF_SAU_USR,
+        help_text="This is how your name will be displayed on any 3rd party sites e.g. social media sites. Username is your username for this site. Display name is how your name is normally displayed on this site, format chosen by you. Social account username is the username of the social account you have linked to your account on this site.")
     can_receive_emails = models.BooleanField(
         default=True,
         help_text="Global email setting, if false the user will not receive any emails")
@@ -38,15 +55,30 @@ class Profile(models.Model):
         help_text="The user consents to the following level of cookies")
 
     def get_name(self):
-        if self.display_name_format == 0:
-            name = "%s %s" % (self.user.first_name, self.user.last_name)
-            if name == " ":
-                name = self.user.username
-            return name
-        if self.display_name_format == 1:
-            return "%s" % self.user.username
-        if self.display_name_format == 2:
+        if self.display_name_format == self.DNF_FULL:
+            name = " ".join([self.user.first_name, self.user.last_name]).strip()
+            return name or self.user.username
+        if self.display_name_format == self.DNF_USR:
+            return self.user.username
+        if self.display_name_format == self.DNF_ID:
             return "user_%d" % self.user.pk
+
+    def get_social_name(self, provider=None):
+        if self.social_display_name_format == self.SDNF_USR:
+            return self.user.username
+        if self.social_display_name_format == self.SDNF_DN:
+            return self.get_name()
+
+        try:
+            sa = SocialAccount.objects.get(user=self.user, provider=provider)
+            name = sa.get_provider_account().to_str()
+        except SocialAccount.DoesNotExist:
+            name = None
+
+        if self.social_display_name_format == self.SDNF_SAU_USR:
+            return name or self.user.username
+        if self.social_display_name_format == self.SDNF_SAU_DN:
+            return name or self.get_name()
 
     def email_user(self, subject, message, new_comp=False, connection=None):
         if not self.user.email:

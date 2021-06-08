@@ -9,7 +9,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core import mail
 from django.utils.translation import gettext as _
 from .models import Ticket, Competition
-from .forms import ProfileEditForm, NameChangeForm
+from .forms import ProfileEditForm, NameChangeForm, AnnouncementForm
 from competition.models import Participant
 import logging
 from allauth.socialaccount.models import SocialAccount, SocialApp
@@ -96,52 +96,54 @@ def use_token(request):
 def announcement(request):
     current_site = get_current_site(request)
     if request.method == 'POST':
-        subject = ""
-        body = ""
-        try:
-            subject = request.POST["subject"]
-            body = request.POST["message"]
-            test_flag = request.POST["test_email"] == "true"
-        except KeyError:
-            test_flag = False
+        form = AnnouncementForm(request.POST)
 
-        if not len(body) or not len(subject):
-            raise Http404("Subject or body missing")
+        if form.is_valid():
 
-        if test_flag:
-            user_list = [request.user]
-        else:
-            user_list = User.objects.all()
+            subject = form.cleaned_data["subject"]
+            body = form.cleaned_data["message"]
+            test_flag = form.cleaned_data["test_email"]
+            tourn = form.cleaned_data["tournament"]
 
-        n_sent = 0
-        connection = mail.get_connection()
-        connection.open()
-        for user in user_list:
-            message = loader.render_to_string('announcement_email.html', {
-                'user': user,
-                'body': body,
+            if test_flag:
+                user_list = [request.user]
+            elif tourn is not None:
+                user_list = tourn.participants.all()
+            else:
+                user_list = User.objects.all()
+
+            n_sent = 0
+            connection = mail.get_connection()
+            connection.open()
+            for user in user_list:
+                message = loader.render_to_string('announcement_email.html', {
+                    'user': user,
+                    'body': body,
+                    'site_name': current_site.name,
+                    'site_domain': current_site.name,
+                    'protocol': 'https' if request.is_secure() else 'http',
+                })
+                if user.profile.email_user(subject,
+                                           message,
+                                           connection=connection):
+                    n_sent += 1
+
+            connection.close()
+
+            template = loader.get_template('announcement_sent.html')
+            context = {
                 'site_name': current_site.name,
-                'site_domain': current_site.name,
-                'protocol': 'https' if request.is_secure() else 'http',
-            })
-            if user.profile.email_user(subject,
-                                       message,
-                                       connection=connection):
-                n_sent += 1
+                'user_list_len': n_sent,
+            }
 
-        connection.close()
-
-        template = loader.get_template('announcement_sent.html')
-        context = {
-            'site_name': current_site.name,
-            'user_list_len': n_sent,
-        }
-
-        return HttpResponse(template.render(context, request))
+            return HttpResponse(template.render(context, request))
+    else:
+        form = AnnouncementForm()
 
     template = loader.get_template('announcement.html')
     context = {
         'site_name': current_site.name,
+        'form': form,
     }
 
     return HttpResponse(template.render(context, request))

@@ -78,7 +78,6 @@ class Tournament(models.Model):
     sport = models.ForeignKey(Sport)
     bonus = models.DecimalField(max_digits=5, decimal_places=2, default=2)
     draw_bonus = models.DecimalField(max_digits=5, decimal_places=2, default=1)
-    late_get_bonus = models.BooleanField(default=False)
     state = models.IntegerField(default=PENDING,
                                 choices=((PENDING, "Pending"),
                                          (ACTIVE, "Active"),
@@ -427,15 +426,19 @@ class PredictionBase(models.Model):
     prediction = models.DecimalField(default=0, max_digits=5, decimal_places=2)
     score = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
     margin = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
+    correct = models.NullBooleanField()
 
     def calc_score(self, result):
         self.margin = abs(result - self.prediction)
         if self.prediction == result:
             self.score = -self.bonus(result)
+            self.correct = True
         elif (self.prediction < 0 and result < 0) or (self.prediction > 0 and result > 0):
             self.score = self.margin - self.bonus(result)
+            self.correct = True
         else:
             self.score = self.margin
+            self.correct = False
 
     def bonus(self, result):
         if result == 0:  # draw
@@ -444,6 +447,13 @@ class PredictionBase(models.Model):
 
     def get_predictor(self):
         raise NotImplementedError("%s didn't override get_predictor" % self.__class__)
+
+    def css_class_correct(self):
+        if self.correct is True:
+            return "prediction_correct"
+        if self.correct is False:
+            return "prediction_incorrect"
+        return "prediction_unknown"
 
     class Meta:
         abstract = True
@@ -458,12 +468,17 @@ class Prediction(PredictionBase):
         return "%s: %s" % (self.user, self.match)
 
     def bonus(self, result):
-        if self.late and not self.match.tournament.late_get_bonus:
+        if self.late:
             return 0
         return super(Prediction, self).bonus(result)
 
     def get_predictor(self):
         return self.match.tournament.participant_set.get(user=self.user)
+
+    def css_class_correct(self):
+        if self.late:
+            return "prediction_missed"
+        return super(Prediction, self).css_class_correct()
 
     class Meta:
         unique_together = ('user', 'match',)

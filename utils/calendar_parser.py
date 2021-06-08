@@ -69,14 +69,22 @@ def events_to_csv(events, file_name, summary_re=g_summary_re):
     matches_to_csv(rows, file_name)
 
 
-def teams_to_csv(teams, file_name):
+def teams_to_csv(teams, file_name, country=False):
     header = ["name", "code"]
+    if country:
+        import pycountry
+
     if len(teams):
         with open(file_name, 'w+') as file:
             writer = csv.DictWriter(file, fieldnames=header)
             writer.writeheader()
             for team in teams:
-                writer.writerow({"name": team})
+                row = {"name": team}
+                if country:
+                    c = pycountry.countries.get(name=team)
+                    if c is not None:
+                        row["code"] = c.alpha_3
+                writer.writerow(row)
 
 
 def matches_to_teams(matches):
@@ -102,9 +110,14 @@ if __name__ == "__main__" :
                         action="store_true")
     parser.add_argument("--teams",
                         default=False,
-                        action="store_true")
+                        action="store_true",
+                        help="Output a team,code csv file from all the matches")
     parser.add_argument("--regx",
                         default=g_summary_re)
+    parser.add_argument("--country",
+                        default=False,
+                        action="store_true",
+                        help="Use pycountry to add code to teams file")
 
     args = parser.parse_args()
 
@@ -116,6 +129,6 @@ if __name__ == "__main__" :
         # events_to_teams(events, args.out_filename, args.regx)
         matches = events_to_matches(events, args.regx)
         teams = matches_to_teams(matches)
-        teams_to_csv(teams, args.out_filename)
+        teams_to_csv(teams, args.out_filename, args.country)
     else:
         events_to_csv(events, args.out_filename, args.regx)

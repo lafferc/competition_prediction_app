@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.shortcuts import render
+from allauth.socialaccount.models import SocialApp
 from member.models import Profile, Organisation, Competition, Ticket
 import logging
 
@@ -34,16 +36,9 @@ class ParticipantInline(admin.TabularInline):
         return field
 
 
-def add_tickets(modeladmin, request, queryset):
-    g_logger.debug("add_tickets(%r, %r, %r)", modeladmin, request, queryset)
-    for comp in queryset:
-        for i in range(10):
-            Ticket.objects.create(competition=comp)
-
-
 class CompetitionAdmin(admin.ModelAdmin):
     inlines = (TicketInline, ParticipantInline)
-    actions = [add_tickets]
+    actions = ["add_tickets"]
     list_display = ('organisation', 'tournament', 'participant_count')
     fields = ('organisation', 'tournament', 'token_len')
 
@@ -61,11 +56,31 @@ class CompetitionAdmin(admin.ModelAdmin):
         request._obj_ = obj
         return super(CompetitionAdmin, self).get_form(request, obj, **kwargs)
 
+    def add_tickets(self, request, queryset):
+        g_logger.debug("add_tickets(%r, %r, %r)", self, request, queryset)
+        for comp in queryset:
+            for i in range(10):
+                Ticket.objects.create(competition=comp)
+
 
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'test_features_enabled')
+    list_display = ('user', 'user__id', 'test_features_enabled')
+    actions = ["display_social_names"]
+
+    def user__id(self, obj):
+        return obj.user.id
+    user__id.admin_order_field = 'user__id'
+
+    def display_social_names(self, request, queryset):
+        info = {}
+        for s_app in SocialApp.objects.all():
+            info[s_app.provider] = [(p, p.get_social_name(s_app.provider)) for p in queryset]
+
+        return render(request,
+                      'admin/social_display_names.html',
+                      context={'info': info})
 
 
-admin.site.register(Profile)
+admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Organisation)
 admin.site.register(Competition, CompetitionAdmin)

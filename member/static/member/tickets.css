@@ -1,0 +1,40 @@
+div.ticket {
+    display: grid;
+    grid-template-columns: auto auto auto auto;
+    border: 20px solid powderblue;
+    padding: 20px;
+    float: left;
+    width:500px;
+    height:150px;
+}
+.org_info {
+    display: grid;
+    grid-template-rows: auto auto auto;
+}
+.info {
+    grid-column-start: 2;
+    grid-column-end: 4;
+}
+.info > h2 {
+    margin-top: 0;
+    text-align:center;
+}
+.instructions > p {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 12px;
+}
+.token {
+    text-align:center;
+    font-family: monospace;
+    font-size: 16px;
+}
+.site_logo {
+    display: grid;
+    grid-template-rows: auto auto auto;
+}
+img {
+    grid-row-start: 2;
+    width:100px;
+}
+

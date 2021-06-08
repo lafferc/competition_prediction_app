@@ -1,0 +1,5 @@
+.matches_today, .matches_tomorrow {
+    display: inline-block;
+    vertical-align: top;
+}
+

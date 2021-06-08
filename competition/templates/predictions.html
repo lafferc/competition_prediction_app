@@ -1,5 +1,7 @@
 {% extends "competition_base.html" %}
 
+{% load static %}
+
 {% block content %}
 {% if not other_user and user_score %}
     <p>Your current score is {{ user_score }}</p>
@@ -8,13 +10,14 @@
     {% if other_user %}
         <p>Here are the predictions that {{ other_user }} has made</p>
     {% endif %}
-    <table style="width:auto" border="1">
+    <table>
         <tr>
             <th>Match id</th>
             <th>Match</th>
             <th>Prediction</th>
             <th>Result</th>
             <th>{% if not other_user %}Your {% endif %}Score</th>
+            <th class="prediction_correct"></th>
         </tr>
     <script>
     function edit_prediction(id) {
@@ -47,6 +50,7 @@
         {% endif %}
             <td>{{ prediction.match.score }}</td>
             <td>{{ prediction.score }}</td>
+            <td class="{{ prediction.css_class_correct }}"></td>
         </tr>
     {% endfor %}
     </table>

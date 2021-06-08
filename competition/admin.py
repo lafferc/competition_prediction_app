@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db.models import Avg, Sum
+from django.shortcuts import render
 from competition.models import Team, Tournament, Match, Prediction, Participant
 from competition.models import Sport, Benchmark, BenchmarkPrediction
 import logging
@@ -43,33 +45,11 @@ class BenchmarkInline(admin.TabularInline):
         return False
 
 
-def pop_leaderboard(modeladmin, request, queryset):
-    g_logger.debug("pop_leaderboard(%r, %r, %r)", modeladmin, request, queryset)
-    for tournament in queryset:
-        tournament.update_table()
-
-
-def close_tournament(modeladmin, request, queryset):
-    g_logger.debug("close_tournament(%r, %r, %r)", modeladmin, request, queryset)
-    for tournament in queryset:
-        tournament.close(request)
-
-
-def open_tournament(modeladmin, request, queryset):
-    g_logger.debug("open_tournament(%r, %r, %r)", modeladmin, request, queryset)
-    for tournament in queryset:
-        tournament.open(request)
-
-
-def archive_tournament(modeladmin, request, queryset):
-    queryset.update(state=Tournament.ARCHIVED)
-
-
 class TournamentAdmin(admin.ModelAdmin):
     list_display = ('name', 'participant_count', 'match_count')
     inlines = (BenchmarkInline, ParticipantInline,)
-    actions = [pop_leaderboard, close_tournament,
-               open_tournament, archive_tournament]
+    actions = ['pop_leaderboard', 'close_tournament',
+               'open_tournament', 'archive_tournament']
     list_filter = (
         ('sport', admin.RelatedOnlyFieldListFilter),
         "state",
@@ -77,14 +57,14 @@ class TournamentAdmin(admin.ModelAdmin):
     )
     fieldsets = (
         (None, {
-            'fields': ('name', 'sport', 'state', 'bonus', 'draw_bonus', 'late_get_bonus', 'year',
+            'fields': ('name', 'sport', 'state', 'bonus', 'draw_bonus', 'year',
                        'winner', 'add_matches', 'test_features_enabled', 'draw_definition')
         }),
     )
 
     def get_readonly_fields(self, request, obj):
         if obj:
-            return ('sport', 'bonus', 'late_get_bonus', 'draw_bonus',
+            return ('sport', 'bonus', 'draw_bonus',
                     'winner', 'state', 'year', 'test_features_enabled')
         return ('winner')
 
@@ -93,7 +73,7 @@ class TournamentAdmin(admin.ModelAdmin):
             if not obj or obj.state not in [Tournament.FINISHED, Tournament.ARCHIVED]:
                 return self.fieldsets
         return ((None, {'fields': ('name', 'sport', 'state', 'bonus', 'draw_bonus',
-                                   'late_get_bonus', 'year', 'winner', 'draw_definition')}),)
+                                   'year', 'winner', 'draw_definition')}),)
 
     def participant_count(self, obj):
         return obj.participant_set.count()
@@ -104,16 +84,23 @@ class TournamentAdmin(admin.ModelAdmin):
     def get_inline_instances(self, request, obj=None):
         return obj and super(TournamentAdmin, self).get_inline_instances(request, obj) or []
 
+    def pop_leaderboard(self, request, queryset):
+        g_logger.debug("pop_leaderboard(%r, %r, %r)", self, request, queryset)
+        for tournament in queryset:
+            tournament.update_table()
 
-def calc_match_result(modeladmin, request, queryset):
-    for match in queryset:
-        if match.score is None:
-            continue
-        match.tournament.check_predictions(match)
+    def close_tournament(self, request, queryset):
+        g_logger.debug("close_tournament(%r, %r, %r)", self, request, queryset)
+        for tournament in queryset:
+            tournament.close(request)
 
+    def open_tournament(self, request, queryset):
+        g_logger.debug("open_tournament(%r, %r, %r)", self, request, queryset)
+        for tournament in queryset:
+            tournament.open(request)
 
-def postpone(modeladmin, request, queryset):
-    queryset.update(postponed=True)
+    def archive_tournament(self, request, queryset):
+        queryset.update(state=Tournament.ARCHIVED)
 
 
 class MatchAdmin(admin.ModelAdmin):
@@ -122,7 +109,7 @@ class MatchAdmin(admin.ModelAdmin):
         "postponed",
         ('tournament', admin.RelatedOnlyFieldListFilter),
     )
-    actions = [calc_match_result, postpone]
+    actions = ['calc_match_result', 'postpone', 'show_top_ten']
     fieldsets = (
         (None, {
             'fields': ('tournament', 'match_id', 'home_team', 'home_team_winner_of',
@@ -163,6 +150,28 @@ class MatchAdmin(admin.ModelAdmin):
             ).filter(score=None)
         return super(MatchAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
+    def calc_match_result(self, request, queryset):
+        for match in queryset:
+            if match.score is None:
+                continue
+            match.tournament.check_predictions(match)
+
+    def postpone(self, request, queryset):
+        queryset.update(postponed=True)
+
+    def show_top_ten(self, request, queryset):
+
+        top_10 = (Prediction.objects.filter(match__in=queryset)
+                  .values('user')
+                  .annotate(Sum('score'), Avg('margin'))
+                  .order_by('score__sum')[:10])
+
+        return render(request,
+                      'admin/top10.html',
+                      context={'matches': queryset,
+                               'top_10': top_10,
+                               })
+
 
 class PredictionAdmin(admin.ModelAdmin):
     list_display = ('pk', 'user', 'match', 'entered')
@@ -170,11 +179,13 @@ class PredictionAdmin(admin.ModelAdmin):
     list_filter = (
         'match__tournament',
         ('user', admin.RelatedOnlyFieldListFilter),
+        'late',
+        'correct',
     )
 
     def get_readonly_fields(self, request, obj):
         if obj:
-            return ('user', 'match', 'prediction', 'margin', 'score', "late")
+            return ('user', 'match', 'prediction', 'margin', 'score', "late", "correct")
         return ('margin', 'score', "late")
 
 

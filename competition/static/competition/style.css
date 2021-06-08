@@ -1,0 +1,24 @@
+table, th, td {
+    border: 1px solid black;;
+    width: auto;
+}
+
+th.prediction_correct {
+    border: 0;
+}
+
+td.prediction_missed {
+    border: 0;
+    content:url(../admin/img/icon-unknown.svg);
+}
+td.prediction_correct {
+    border: 0;
+    content:url(../admin/img/icon-yes.svg);
+}
+td.prediction_incorrect {
+    border: 0;
+    content: url(../admin/img/icon-no.svg);
+}
+td.prediction_unknown {
+    border: 0;
+}
