@@ -341,18 +341,13 @@ def match(request, match_pk):
     if not match.tournament.participants.filter(pk=request.user.pk).exists():
         raise Http404("User is not a Participant")
 
-    allow_benchmarks = False
     show_benchmarks = False
-
-    if request.user.profile.test_features_enabled or match.tournament.test_features_enabled:
-        allow_benchmarks = True
 
     if match.has_started():
         if match.score is None:
             prediction_list = match.prediction_set.all()
         else:
-            if allow_benchmarks:
-                show_benchmarks = request.GET.get('benchmarks')
+            show_benchmarks = request.GET.get('benchmarks')
 
             if show_benchmarks:
                 prediction_list = sorted(
@@ -387,7 +382,7 @@ def match(request, match_pk):
         'match': match,
         'prediction': user_prediction,
         'show_benchmarks': show_benchmarks,
-        'display_benchmark_link': allow_benchmarks and not show_benchmarks,
+        'display_benchmark_link': not show_benchmarks,
     }
     return HttpResponse(template.render(context, request))
 
@@ -400,9 +395,6 @@ def benchmark_table(request, tour_name):
         Participant.objects.get(tournament=tournament, user=request.user)
     except Participant.DoesNotExist:
         return redirect("competition:join", tour_name=tour_name)
-
-    if not (request.user.profile.test_features_enabled or tournament.test_features_enabled):
-        raise Http404("User does not have test features enabled")
 
     participant_list = tournament.participant_set.all()
     benchmark_list = tournament.benchmark_set.all()
