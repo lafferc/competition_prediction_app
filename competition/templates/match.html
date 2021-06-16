@@ -42,7 +42,7 @@ Your prediction: {{ prediction.prediction }}
             $( "#current_vaule").hide();
             $( "#edit_button").hide();
             $( "#new_value_input").show();
-            $( "#sumbit_button").show();
+            $( "#submit_button").show();
         }
         function submit_form (form_id) {
             document.getElementById(form_id).submit();
@@ -62,8 +62,8 @@ Your prediction: {{ prediction.prediction }}
                 <input type="text" name="prediction_prediction" value="{{ prediction.prediction }}">
             </form>
         </td>
-        <td id="sumbit_button" style="display:none">
-            <button data-icon="check" onclick="submit_form('edit_form')">sumbit</button>
+        <td id="submit_button" style="display:none">
+            <button data-icon="check" onclick="submit_form('edit_form')">submit</button>
         </td>
     {% else %}
         <td>
@@ -72,7 +72,7 @@ Your prediction: {{ prediction.prediction }}
                 <input type="text" name="{{match.pk}}" pattern="^[-+]?\d+(\.\d+)?$">
         </td>
         <td>
-            <button data-icon="check" onclick="submit_form('create_form')">sumbit</button>
+            <button data-icon="check" onclick="submit_form('create_form')">submit</button>
         </td>
     </form>
     {% endif %}
