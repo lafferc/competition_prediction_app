@@ -345,7 +345,7 @@ def match(request, match_pk):
 
     if match.has_started():
         if match.score is None:
-            prediction_list = match.prediction_set.all()
+            prediction_list = match.prediction_set.all().order_by('-prediction')
         else:
             show_benchmarks = request.GET.get('benchmarks')
 
