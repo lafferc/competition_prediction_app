@@ -102,6 +102,7 @@ Result: {{ match.score }}
             <td>{{ prediction.prediction }}</td>
         {% if match.score != None %}
             <td>{{ prediction.score }}</td>
+            <td class="{{ prediction.css_class_correct }}"></td>
         {% endif %}
         </tr>
     {% endfor %}
