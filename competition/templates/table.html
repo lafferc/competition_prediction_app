@@ -46,11 +46,9 @@
     </div>
     {% endif %}
     {% if has_benchmark %}
-        {% if user.profile.test_features_enabled or TOURNAMENT.test_features_enabled %}
-    <div class="test_feature">
+    <div>
         <a href="{% url 'competition:benchmark_table' TOURNAMENT %}">Show benchmarks</a>
     </div>
-        {% endif %}
     {% endif %}
 {% endif %}
 {% endblock %}
