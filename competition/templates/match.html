@@ -129,7 +129,7 @@ Result: {{ match.score }}
     {% endif %}
         </span>
     </div>
-    {% if display_benchmark_link and match.score != None %}
+    {% if has_benchmark and match.score != None and not show_benchmarks %}
         <a href="?benchmarks=show&page={{ predictions.number }}">Show benchmarks</a>
     {% endif %}
 {% endif %}

@@ -382,7 +382,7 @@ def match(request, match_pk):
         'match': match,
         'prediction': user_prediction,
         'show_benchmarks': show_benchmarks,
-        'display_benchmark_link': not show_benchmarks,
+        'has_benchmark': match.tournament.benchmark_set.count(),
     }
     return HttpResponse(template.render(context, request))
 
