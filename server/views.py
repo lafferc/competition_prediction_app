@@ -20,34 +20,30 @@ def index(request):
     current_site = get_current_site(request)
     template = get_template('home.html')
     live_tournaments = Tournament.objects.filter(state=Tournament.ACTIVE)
+    user_tourns = live_tournaments.filter(participant__user=request.user)
 
-    searchs = []
     today = datetime.date.today()
-    for tourn in live_tournaments:
-        if not tourn.participants.filter(pk=request.user.pk).exists():
-            continue
-        searchs.append(Match.objects.filter(tournament=tourn,
-                                            kick_off__year=today.year,
-                                            kick_off__month=today.month,
-                                            kick_off__day=today.day,
-                                            postponed=False))
-    matches_today = sorted(
-        chain(*searchs),
-        key=lambda instance: instance.kick_off)
+    matches_today = Match.objects.filter(
+            tournament__in=user_tourns,
+            kick_off__year=today.year,
+            kick_off__month=today.month,
+            kick_off__day=today.day,
+            postponed=False
+            ).order_by('kick_off')
 
-    searchs = []
+
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-    for tourn in live_tournaments:
-        if not tourn.participants.filter(pk=request.user.pk).exists():
-            continue
-        searchs.append(Match.objects.filter(tournament=tourn,
-                                            kick_off__year=tomorrow.year,
-                                            kick_off__month=tomorrow.month,
-                                            kick_off__day=tomorrow.day,
-                                            postponed=False))
-    matches_tomorrow = sorted(
-        chain(*searchs),
-        key=lambda instance: instance.kick_off)
+    matches_tomorrow = Match.objects.filter(
+            tournament__in=user_tourns,
+            kick_off__year=tomorrow.year,
+            kick_off__month=tomorrow.month,
+            kick_off__day=tomorrow.day,
+            postponed=False
+            ).order_by('kick_off')
+
+    matches_predicted = list(chain(
+        matches_today.filter(prediction__user=request.user),
+        matches_tomorrow.filter(prediction__user=request.user)))
 
     context = {
         'site_name': current_site.name,
@@ -55,6 +51,7 @@ def index(request):
         'closed_tournaments': Tournament.objects.filter(state=Tournament.FINISHED).order_by('-pk'),
         'matches_today': matches_today,
         'matches_tomorrow': matches_tomorrow,
+        'matches_predicted': matches_predicted,
     }
     return HttpResponse(template.render(context, request))
 

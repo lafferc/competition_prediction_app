@@ -3,3 +3,6 @@
     vertical-align: top;
 }
 
+.match_no_prediction {
+    content: url(../admin/img/icon-alert.svg);
+}

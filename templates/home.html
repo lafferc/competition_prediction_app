@@ -44,6 +44,9 @@ $(function() {
             <li>
                 <a href="{% url 'competition:match' match.pk %}">{{ match }}</a>
                 (<span class="toLocalTimeHM">{{match.kick_off|date:"Y/m/d H:i:s" }} </span>)
+            {% if match not in matches_predicted %}
+                <span class="match_no_prediction"></span>
+            {% endif %}
             </li>
         {% endfor %}
         </ul>
@@ -57,6 +60,9 @@ $(function() {
             <li>
                 <a href="{% url 'competition:match' match.pk %}">{{ match }}</a>
                 (<span class="toLocalTimeHM">{{match.kick_off|date:"Y/m/d H:i:s" }} </span>)
+            {% if match not in matches_predicted %}
+                <span class="match_no_prediction"></span>
+            {% endif %}
             </li>
         {% endfor %}
         </ul>
