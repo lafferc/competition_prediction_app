@@ -10,14 +10,17 @@ th.prediction_correct {
 td.prediction_missed {
     border: 0;
     content:url(../admin/img/icon-unknown.svg);
+    display: inline-block;
 }
 td.prediction_correct {
     border: 0;
     content:url(../admin/img/icon-yes.svg);
+    display: inline-block;
 }
 td.prediction_incorrect {
     border: 0;
     content: url(../admin/img/icon-no.svg);
+    display: inline-block;
 }
 td.prediction_unknown {
     border: 0;
