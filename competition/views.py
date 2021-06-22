@@ -179,7 +179,9 @@ def table(request, tour_name):
         leaderboard.append((predictor.get_url(),
                             predictor.get_name(),
                             predictor.score,
-                            predictor.margin_per_match))
+                            predictor.margin_per_match,
+                            predictor.get_predictions().filter(match__score__isnull=False).order_by('-match__kick_off')[:5]
+                            ))
 
     current_site = get_current_site(request)
     template = loader.get_template('table.html')
@@ -415,7 +417,9 @@ def benchmark_table(request, tour_name):
         leaderboard.append((predictor.get_url(),
                             predictor.get_name(),
                             predictor.score,
-                            predictor.margin_per_match))
+                            predictor.margin_per_match,
+                            predictor.get_predictions().filter(match__score__isnull=False).order_by('-match__kick_off')[:5]
+                            ))
 
     current_site = get_current_site(request)
     template = loader.get_template('table.html')

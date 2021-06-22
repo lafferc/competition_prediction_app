@@ -16,7 +16,7 @@
             <th title="The user with the lowest score is winning">Score</th>
             <th title='The "average margin" is the average difference between the predicted margin and actual margin. This does not include bonuses.'>Average margin</th>
         </tr>
-    {% for link, name, score, avg_margin in leaderboard %}
+    {% for link, name, score, avg_margin, predictions in leaderboard %}
         <tr>
             {% if link %}
             <td><a href="{{ link }}">{{ name }}</a></td>
@@ -25,6 +25,9 @@
             {% endif %}
             <td>{{ score }}</td>
             <td>{{ avg_margin }}</td>
+        {% for prediction in predictions %}
+            <td class="{{ prediction.css_class_correct }}"></td>
+        {% endfor %}
         </tr>
     {% endfor %}
     </table>
