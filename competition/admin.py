@@ -118,9 +118,11 @@ class MatchAdmin(admin.ModelAdmin):
     )
 
     def get_readonly_fields(self, request, obj):
-        if obj:
+        if not obj:
+            return ('score',)
+        if obj.home_team and obj.away_team:
             return ('tournament', 'match_id', 'home_team', 'away_team')
-        return ('score',)
+        return ('tournament', 'match_id', 'score',)
 
     def get_fieldsets(self, request, obj):
         if not obj:
