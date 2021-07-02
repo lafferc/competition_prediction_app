@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.db.models import Avg, Sum
+from django.db.models import Avg, Sum, F
 from django.shortcuts import render
 from competition.models import Team, Tournament, Match, Prediction, Participant
 from competition.models import Sport, Benchmark, BenchmarkPrediction
@@ -109,7 +109,7 @@ class MatchAdmin(admin.ModelAdmin):
         "postponed",
         ('tournament', admin.RelatedOnlyFieldListFilter),
     )
-    actions = ['calc_match_result', 'postpone', 'show_top_ten']
+    actions = ['calc_match_result', 'postpone', 'show_top_ten', 'swap_home_and_away']
     fieldsets = (
         (None, {
             'fields': ('tournament', 'match_id', 'home_team', 'home_team_winner_of',
@@ -173,6 +173,15 @@ class MatchAdmin(admin.ModelAdmin):
                       context={'matches': queryset,
                                'top_10': top_10,
                                })
+    def swap_home_and_away(self, request, queryset):
+        queryset.update(home_team=F('away_team'),
+                        away_team=F('home_team'),
+                        home_team_winner_of=F('away_team_winner_of'),
+                        away_team_winner_of=F('home_team_winner_of'),
+                        score=F('score')*-1)
+        Prediction.objects.filter(
+                match__in=queryset
+                ).update(prediction=F('prediction')*-1)
 
 
 class PredictionAdmin(admin.ModelAdmin):
