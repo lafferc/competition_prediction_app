@@ -15,6 +15,9 @@
             <th title="To view another user's predictions click on their name">User</th>
             <th title="The user with the lowest score is winning">Score</th>
             <th title='The "average margin" is the average difference between the predicted margin and actual margin. This does not include bonuses.'>Average margin</th>
+    {% if leaderboard.0.4 %}
+            <th>Last {{ leaderboard.0.4 | length }}</th>
+    {% endif %}
         </tr>
     {% for link, name, score, avg_margin, predictions in leaderboard %}
         <tr>
