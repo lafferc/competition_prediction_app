@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.db.models import Avg, Sum
+from django.db.models import Avg, Sum, F
 from django.shortcuts import render
 from competition.models import Team, Tournament, Match, Prediction, Participant
 from competition.models import Sport, Benchmark, BenchmarkPrediction
@@ -109,7 +109,7 @@ class MatchAdmin(admin.ModelAdmin):
         "postponed",
         ('tournament', admin.RelatedOnlyFieldListFilter),
     )
-    actions = ['calc_match_result', 'postpone', 'show_top_ten']
+    actions = ['calc_match_result', 'postpone', 'show_top_ten', 'swap_home_and_away']
     fieldsets = (
         (None, {
             'fields': ('tournament', 'match_id', 'home_team', 'home_team_winner_of',
@@ -162,17 +162,56 @@ class MatchAdmin(admin.ModelAdmin):
         queryset.update(postponed=True)
 
     def show_top_ten(self, request, queryset):
+        from member.forms import SocialProviderForm 
+        from django.contrib.auth.models import User
+
+        form = SocialProviderForm(request.POST)
+
+        provider = None
+        if form.is_valid():
+            provider = form.cleaned_data['social_provider']
+            provider = provider and provider.provider
 
         top_10 = (Prediction.objects.filter(match__in=queryset)
                   .values('user')
                   .annotate(Sum('score'), Avg('margin'))
                   .order_by('score__sum')[:10])
 
+        pos = ["1st", "2nd", "3rd", "4th", "5th",
+                "6th", "7th", "8th", "9th", "10th"]
+
+        i = 0;
+        prev = None
+        for p in top_10:
+            p['user'] = User.objects.get(pk=p['user'])
+            p['social_name'] = p['user'].profile.get_social_name(
+                    provider
+                    )
+            if prev and prev['score__sum'] == p['score__sum']:
+                p['pos'] = prev['pos']
+            else:
+                p['pos'] = pos[i]
+
+            i += 1
+            prev = p
+
         return render(request,
                       'admin/top10.html',
                       context={'matches': queryset,
                                'top_10': top_10,
+                               'form': form,
+                               'action': 'show_top_ten',
                                })
+
+    def swap_home_and_away(self, request, queryset):
+        queryset.update(home_team=F('away_team'),
+                        away_team=F('home_team'),
+                        home_team_winner_of=F('away_team_winner_of'),
+                        away_team_winner_of=F('home_team_winner_of'),
+                        score=F('score')*-1)
+        Prediction.objects.filter(
+                match__in=queryset
+                ).update(prediction=F('prediction')*-1)
 
 
 class PredictionAdmin(admin.ModelAdmin):

@@ -3,18 +3,29 @@
 {% block content %}
 
 <h1> Showing Top 10 for the following matches </h1>
+<form action="" method="post">
+    {% csrf_token %}
 <ul>
     {% for match in matches %}
     <li> {{ match }} {{ match.score }} </li>
+    <input type="hidden" name="_selected_action" value="{{ match.pk }}" />
     {% endfor %}
 </ul>
 
 <h2> The Top 10 </h2>
 <ul>
+    <li>
+        <h3>user.pk | username | pos | social name | score | avg </h3>
+    </li>
     {% for p in top_10 %}
-    <li> {{ p.user }} | {{ p.score__sum }} | {{ p.margin__avg|floatformat:2 }}</li>
+    <li> {{p.user.pk}} | {{ p.user }} | {{p.pos}} | {{p.social_name}}
+        | {{ p.score__sum }} | {{ p.margin__avg|floatformat:2 }}</li>
     {% endfor %}
 </ul>
 
+   {{ form.as_p }}
+
+   <input type="hidden" name="action" value="{{action}}"/>
+   <input type="submit" name="apply" value="{{action}}"/>
 
 {% endblock %}
