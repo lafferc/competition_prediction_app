@@ -42,7 +42,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'competition',
     'member',
-
+    'rest_framework',
     'captcha',
     'allauth',
     'allauth.account',
@@ -255,4 +255,9 @@ ACCOUNT_FORMS = {
 }
 SOCIALACCOUNT_FORMS = {
     'signup': 'server.forms.SocialSignupForm'
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10
 }
