@@ -1,0 +1,36 @@
+{% if matches_today or matches_tomorrow %}
+    <div class="matches">
+        {% if matches_today %}
+    <div class="matches_today">
+        <h3>Today's Matches</h3>
+        <ul>
+        {% for match in matches_today %}
+            <li>
+                <a href="{% url 'competition:match' match.pk %}">{{ match }}</a>
+                (<span class="toLocalTimeHM">{{match.kick_off|date:"Y/m/d H:i:s" }} </span>)
+            {% if match not in matches_predicted %}
+                <span class="match_no_prediction"></span>
+            {% endif %}
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+        {% endif %}
+        {% if matches_tomorrow %}
+    <div class="matches_tomorrow">
+        <h3>Tomorrow's Matches</h3>
+        <ul>
+        {% for match in matches_tomorrow %}
+            <li>
+                <a href="{% url 'competition:match' match.pk %}">{{ match }}</a>
+                (<span class="toLocalTimeHM">{{match.kick_off|date:"Y/m/d H:i:s" }} </span>)
+            {% if match not in matches_predicted %}
+                <span class="match_no_prediction"></span>
+            {% endif %}
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+        {% endif %}
+    </div>
+    {% endif %}

@@ -24,60 +24,10 @@ $(function() {
 
 {% block content %}
 
-    {% if live_tournaments %}
-    <div class="live_tournaments">
-        <h3>Live competitions</h3>
-        <ul>
-        {% for tournament in live_tournaments %}
-            <li><a href="{% url 'competition:submit' tournament.name %}">{{ tournament.name }}</a></li>
-        {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-    {% if matches_today or matches_tomorrow %}
-    <div class="matches">
-        {% if matches_today %}
-    <div class="matches_today">
-        <h3>Today's Matches</h3>
-        <ul>
-        {% for match in matches_today %}
-            <li>
-                <a href="{% url 'competition:match' match.pk %}">{{ match }}</a>
-                (<span class="toLocalTimeHM">{{match.kick_off|date:"Y/m/d H:i:s" }} </span>)
-            {% if match not in matches_predicted %}
-                <span class="match_no_prediction"></span>
-            {% endif %}
-            </li>
-        {% endfor %}
-        </ul>
-    </div>
-        {% endif %}
-        {% if matches_tomorrow %}
-    <div class="matches_tomorrow">
-        <h3>Tomorrow's Matches</h3>
-        <ul>
-        {% for match in matches_tomorrow %}
-            <li>
-                <a href="{% url 'competition:match' match.pk %}">{{ match }}</a>
-                (<span class="toLocalTimeHM">{{match.kick_off|date:"Y/m/d H:i:s" }} </span>)
-            {% if match not in matches_predicted %}
-                <span class="match_no_prediction"></span>
-            {% endif %}
-            </li>
-        {% endfor %}
-        </ul>
-    </div>
-        {% endif %}
-    </div>
-    {% endif %}
-    {% if closed_tournaments %}
-    <div class="closed_tournaments">
-        <h3>Previous competitions</h3>
-        <ul>
-        {% for tournament in closed_tournaments %}
-            <li>Congratulations to {{tournament.winner.user.profile.get_name}} who won <a href="{% url 'competition:submit' tournament.name %}">{{ tournament.name }}</a> with a score of {{tournament.winner.score}}</li>
-        {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
+    {% include "competition/tournament_list_open.html" %}
+
+    {% include "competition/match_list_todaytomorrow.html" %}
+        
+    {% include "competition/tournament_list_open.html" %}
+
 {% endblock %}

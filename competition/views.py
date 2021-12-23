@@ -1,4 +1,4 @@
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpResponse, Http404
 from django.template import loader
 from django.template.defaultfilters import pluralize
@@ -458,3 +458,52 @@ def benchmark(request, benchmark_pk):
         'live_tournaments': Tournament.objects.filter(state=Tournament.ACTIVE),
     }
     return HttpResponse(template.render(context, request))
+
+   
+@login_required
+def tournament_list_open(request):
+    context = {
+        'live_tournaments': Tournament.objects.filter(state=Tournament.ACTIVE)
+    ,
+    }
+    return render(request, 'tournament_list_closed.html', context)
+
+    
+@login_required
+def tournament_list_closed(request):
+    context = {
+        'closed_tournaments': Tournament.objects.filter(state=Tournament.FINISHED).order_by('-pk'),
+    }
+    return render(request, 'tournament_list_closed.html', context)
+
+
+@login_required
+def match_list_todaytomorrow(request):
+    today = datetime.date.today()
+    matches_today = Match.objects.filter(
+            tournament__in=user_tourns,
+            kick_off__year=today.year,
+            kick_off__month=today.month,
+            kick_off__day=today.day,
+            postponed=False
+            ).order_by('kick_off')
+
+    tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    matches_tomorrow = Match.objects.filter(
+            tournament__in=user_tourns,
+            kick_off__year=tomorrow.year,
+            kick_off__month=tomorrow.month,
+            kick_off__day=tomorrow.day,
+            postponed=False
+            ).order_by('kick_off')
+
+    matches_predicted = list(chain(
+        matches_today.filter(prediction__user=request.user),
+        matches_tomorrow.filter(prediction__user=request.user)))
+
+    context = {
+        'matches_today': matches_today,
+        'matches_tomorrow': matches_tomorrow,
+        'matches_predicted': matches_predicted,
+    }
+    return render(request, 'match_list_todaytomorrow.html', context)
