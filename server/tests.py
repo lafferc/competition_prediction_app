@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.core import mail
 from django.test import TestCase
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 import unittest
 import re
 # import pdb; pdb.set_trace()

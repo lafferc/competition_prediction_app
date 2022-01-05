@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('competition', '0017_remove_tournament_display_margin_per_game'),
+        ('competition', '0001_squashed_0027_remove_tournament_late_get_bonus'),
         ('member', '0002_profile_test_features_enabled'),
     ]
 

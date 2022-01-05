@@ -1,6 +1,8 @@
 from django.conf.urls import url
 from . import views
 
+app_name = "member"
+
 urlpatterns = [
     url(r'^profile/$', views.profile, name='profile'),
     url(r'^use_token/$', views.use_token, name='use_token'),

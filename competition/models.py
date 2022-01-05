@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
 from django.core import mail
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template.loader import render_to_string
 from django.utils import timezone
 from io import StringIO
@@ -57,7 +57,7 @@ class Sport(models.Model):
 class Team(models.Model):
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=3)
-    sport = models.ForeignKey(Sport)
+    sport = models.ForeignKey(Sport, models.CASCADE)
 
     def __str__(self):
         return self.name
@@ -75,7 +75,7 @@ class Tournament(models.Model):
 
     name = models.CharField(max_length=200, unique=True)
     participants = models.ManyToManyField(User, through="Participant")
-    sport = models.ForeignKey(Sport)
+    sport = models.ForeignKey(Sport, models.CASCADE)
     bonus = models.DecimalField(max_digits=5, decimal_places=2, default=2)
     draw_bonus = models.DecimalField(max_digits=5, decimal_places=2, default=1)
     state = models.IntegerField(default=PENDING,
@@ -83,7 +83,11 @@ class Tournament(models.Model):
                                          (ACTIVE, "Active"),
                                          (FINISHED, "Finished"),
                                          (ARCHIVED, "Archived")))
-    winner = models.ForeignKey("Participant", null=True, blank=True, related_name='+')
+    winner = models.ForeignKey("Participant",
+                               models.CASCADE,
+                               null=True,
+                               blank=True,
+                               related_name='+')
     add_matches = models.FileField(null=True, blank=True)
     year = models.IntegerField(choices=YEAR_CHOICES, default=current_year)
     test_features_enabled = models.BooleanField(default=False)
@@ -237,7 +241,7 @@ class Tournament(models.Model):
 
 
 class Predictor(models.Model):
-    tournament = models.ForeignKey(Tournament)
+    tournament = models.ForeignKey(Tournament, models.CASCADE)
     score = models.DecimalField(blank=True, null=True, max_digits=6, decimal_places=2)
     margin_per_match = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
 
@@ -302,7 +306,7 @@ class Predictor(models.Model):
 
 
 class Participant(Predictor):
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, models.CASCADE)
 
     def __str__(self):
         return "%s:%s" % (self.tournament, self.user)
@@ -333,14 +337,28 @@ class Participant(Predictor):
 
 
 class Match(models.Model):
-    tournament = models.ForeignKey(Tournament)
+    tournament = models.ForeignKey(Tournament, models.CASCADE)
     match_id = models.IntegerField(blank=True)
     kick_off = models.DateTimeField(verbose_name='Start Time')
-    home_team = models.ForeignKey(Team, related_name='match_home_team', null=True, blank=True)
-    home_team_winner_of = models.ForeignKey('self', blank=True, null=True,
+    home_team = models.ForeignKey(Team,
+                                  models.CASCADE,
+                                  related_name='match_home_team',
+                                  null=True,
+                                  blank=True)
+    home_team_winner_of = models.ForeignKey('self',
+                                            models.CASCADE,
+                                            blank=True,
+                                            null=True,
                                             related_name='match_next_home')
-    away_team = models.ForeignKey(Team, related_name='match_away_team', null=True, blank=True)
-    away_team_winner_of = models.ForeignKey('self', blank=True, null=True,
+    away_team = models.ForeignKey(Team,
+                                  models.CASCADE,
+                                  related_name='match_away_team',
+                                  null=True,
+                                  blank=True)
+    away_team_winner_of = models.ForeignKey('self',
+                                            models.CASCADE,
+                                            blank=True,
+                                            null=True,
                                             related_name='match_next_away')
     score = models.IntegerField(blank=True, null=True)
     postponed = models.BooleanField(blank=True, default=False)
@@ -422,7 +440,7 @@ class Match(models.Model):
 
 
 class PredictionBase(models.Model):
-    match = models.ForeignKey(Match)
+    match = models.ForeignKey(Match, models.CASCADE)
     prediction = models.DecimalField(default=0, max_digits=5, decimal_places=2)
     score = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
     margin = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
@@ -461,7 +479,7 @@ class PredictionBase(models.Model):
 
 class Prediction(PredictionBase):
     entered = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, models.CASCADE)
     late = models.BooleanField(blank=True, default=False)
 
     def __str__(self):
@@ -576,7 +594,7 @@ class Benchmark(Predictor):
 
 
 class BenchmarkPrediction(PredictionBase):
-    benchmark = models.ForeignKey(Benchmark)
+    benchmark = models.ForeignKey(Benchmark, models.CASCADE)
 
     def __str__(self):
         return "%s: %s" % (self.benchmark, self.match)

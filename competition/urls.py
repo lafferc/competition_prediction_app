@@ -2,6 +2,8 @@ from django.conf.urls import url
 
 from . import views
 
+app_name = "competition"
+
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^match/(?P<match_pk>[0-9]+)/$', views.match, name='match'),
