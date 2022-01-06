@@ -14,6 +14,7 @@ from django.utils.translation import gettext as _
 
 import logging
 import decimal
+import datetime
 from itertools import chain
 from .models import Tournament, Match, Prediction, Participant, Benchmark
 from member.models import Competition
@@ -459,16 +460,15 @@ def benchmark(request, benchmark_pk):
     }
     return HttpResponse(template.render(context, request))
 
-   
+
 @login_required
 def tournament_list_open(request):
     context = {
-        'live_tournaments': Tournament.objects.filter(state=Tournament.ACTIVE)
-    ,
+        'live_tournaments': Tournament.objects.filter(state=Tournament.ACTIVE),
     }
-    return render(request, 'tournament_list_closed.html', context)
+    return render(request, 'tournament_list_open.html', context)
 
-    
+
 @login_required
 def tournament_list_closed(request):
     context = {
@@ -479,6 +479,9 @@ def tournament_list_closed(request):
 
 @login_required
 def match_list_todaytomorrow(request):
+    user_tourns = Tournament.objects.filter(state=Tournament.ACTIVE,
+                                            participant__user=request.user)
+
     today = datetime.date.today()
     matches_today = Match.objects.filter(
             tournament__in=user_tourns,

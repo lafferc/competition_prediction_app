@@ -4,9 +4,10 @@
 
 {% block sub_head %}
 <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+<script src="https://unpkg.com/htmx.org@1.6.1"></script>
 <script>
-$(function() {
-    var x = document.getElementsByClassName("toLocalTimeHM");
+htmx.onLoad(function(elt){
+    var x = elt.getElementsByClassName("toLocalTimeHM");
     var offset = new Date().getTimezoneOffset()*60*1000 ;
     for (i = 0; i < x.length; ++i) {
         var d = new Date(0);
@@ -19,15 +20,21 @@ $(function() {
 </script>
 {% endblock %}
 {% block style %}
-    <link rel="stylesheet" href="{% static "css/style.css" %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" type="text/css">
 {% endblock %}
 
 {% block content %}
 
-    {% include "competition/tournament_list_open.html" %}
+    <div hx-get="{% url 'competition:tournament_list_open' %}"
+         hx-trigger="load">
+    </div>
 
-    {% include "competition/match_list_todaytomorrow.html" %}
-        
-    {% include "competition/tournament_list_open.html" %}
+    <div hx-get="{% url 'competition:match_list_todaytomorrow' %}"
+         hx-trigger="load">
+    </div>
+
+    <div hx-get="{% url 'competition:tournament_list_closed' %}"
+         hx-trigger="load">
+    </div>
 
 {% endblock %}

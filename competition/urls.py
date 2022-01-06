@@ -14,4 +14,7 @@ urlpatterns = [
     url(r'^(?P<tour_name>[^/]+)/results/$', views.results, name='results'),
     url(r'^(?P<tour_name>[^/]+)/rules/$', views.rules, name='rules'),
     url(r'^(?P<tour_name>[^/]+)/benchmark/$', views.benchmark_table, name='benchmark_table'),
+    url(r'^tournament_list/open/$', views.tournament_list_open, name='tournament_list_open'),
+    url(r'^tournament_list/closed/$', views.tournament_list_closed, name='tournament_list_closed'),
+    url(r'^match_list/todaytomorrow/$', views.match_list_todaytomorrow, name='match_list_todaytomorrow')
 ]
