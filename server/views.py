@@ -12,8 +12,6 @@ from django.utils.translation import gettext as _
 import datetime
 from itertools import chain
 
-from competition.models import Tournament, Match
-
 
 @login_required
 def index(request):

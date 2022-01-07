@@ -673,7 +673,6 @@ class CompetitionViewTest(TestCase):
 class HomePageContent(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.url = reverse('index')
         sport = Sport.objects.create(name='sport')
         tourn_a = Tournament.objects.create(name='tourn_A',
                                             sport=sport,
@@ -717,24 +716,28 @@ class HomePageContent(TestCase):
         self.assertTrue(login)
 
     def test_live_tournaments(self):
-        response = self.client.get(self.url)
+        response = self.client.get(reverse('competition:tournament_list_open'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'home.html')
+        self.assertTemplateUsed(response, 'tournament_list_open.html')
 
         self.assertEqual(len(response.context['live_tournaments']), 3)
-        self.assertEqual(len(response.context['matches_today']), 0)
-        self.assertEqual(len(response.context['matches_tomorrow']), 0)
+
+    def test_closed_tournaments(self):
+        response = self.client.get(reverse('competition:tournament_list_closed'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'tournament_list_closed.html')
+
+        self.assertEqual(len(response.context['closed_tournaments']), 1)
 
     def test_todays_matches(self):
         for tourn in self.tourns:
             for time in self.times_today:
                 Match.objects.create(tournament=tourn, home_team=self.team_a, away_team=self.team_b, kick_off=time)
 
-        response = self.client.get(self.url)
+        response = self.client.get(reverse('competition:match_list_todaytomorrow'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'home.html')
+        self.assertTemplateUsed(response, 'match_list_todaytomorrow.html')
 
-        self.assertEqual(len(response.context['live_tournaments']), 3)
         self.assertEqual(len(response.context['matches_today']), 6)
         self.assertEqual(len(response.context['matches_tomorrow']), 0)
 
@@ -743,11 +746,10 @@ class HomePageContent(TestCase):
             for time in self.times_tomorrow:
                 Match.objects.create(tournament=tourn, home_team=self.team_a, away_team=self.team_b, kick_off=time)
 
-        response = self.client.get(self.url)
+        response = self.client.get(reverse('competition:match_list_todaytomorrow'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'home.html')
+        self.assertTemplateUsed(response, 'match_list_todaytomorrow.html')
 
-        self.assertEqual(len(response.context['live_tournaments']), 3)
         self.assertEqual(len(response.context['matches_today']), 0)
         self.assertEqual(len(response.context['matches_tomorrow']), 6)
 
@@ -756,13 +758,21 @@ class HomePageContent(TestCase):
             for time in self.times_today + self.times_tomorrow:
                 Match.objects.create(tournament=tourn, home_team=self.team_a, away_team=self.team_b, kick_off=time)
 
-        response = self.client.get(self.url)
+        response = self.client.get(reverse('competition:match_list_todaytomorrow'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'home.html')
+        self.assertTemplateUsed(response, 'match_list_todaytomorrow.html')
 
-        self.assertEqual(len(response.context['live_tournaments']), 3)
         self.assertEqual(len(response.context['matches_today']), 6)
         self.assertEqual(len(response.context['matches_tomorrow']), 6)
+
+    def test_no_matches_today_or_tomorrows(self):
+        response = self.client.get(reverse('competition:match_list_todaytomorrow'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'match_list_todaytomorrow.html')
+
+        self.assertEqual(len(response.context['matches_today']), 0)
+        self.assertEqual(len(response.context['matches_tomorrow']), 0)
+
 
 
 class PredictionsAndMatches(TransactionTestCase):
