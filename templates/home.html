@@ -27,14 +27,17 @@ htmx.onLoad(function(elt){
 
     <div hx-get="{% url 'competition:tournament_list_open' %}"
          hx-trigger="load">
+        <img class="htmx-indicator" src="{% static 'img/loading-icon-ball.gif' %}"/>
     </div>
 
     <div hx-get="{% url 'competition:match_list_todaytomorrow' %}"
          hx-trigger="load">
+        <img class="htmx-indicator" src="{% static 'img/loading-icon-ball.gif' %}"/>
     </div>
 
     <div hx-get="{% url 'competition:tournament_list_closed' %}"
          hx-trigger="load">
+        <img class="htmx-indicator" src="{% static 'img/loading-icon-ball.gif' %}"/>
     </div>
 
 {% endblock %}
