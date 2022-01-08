@@ -466,7 +466,7 @@ def tournament_list_open(request):
     context = {
         'live_tournaments': Tournament.objects.filter(state=Tournament.ACTIVE),
     }
-    return render(request, 'tournament_list_open.html', context)
+    return render(request, 'partial/tournament_list_open.html', context)
 
 
 @login_required
@@ -474,7 +474,7 @@ def tournament_list_closed(request):
     context = {
         'closed_tournaments': Tournament.objects.filter(state=Tournament.FINISHED).order_by('-pk'),
     }
-    return render(request, 'tournament_list_closed.html', context)
+    return render(request, 'partial/tournament_list_closed.html', context)
 
 
 @login_required
@@ -509,4 +509,4 @@ def match_list_todaytomorrow(request):
         'matches_tomorrow': matches_tomorrow,
         'matches_predicted': matches_predicted,
     }
-    return render(request, 'match_list_todaytomorrow.html', context)
+    return render(request, 'partial/match_list_todaytomorrow.html', context)
