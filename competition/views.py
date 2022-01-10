@@ -48,24 +48,6 @@ def submit(request, tour_name):
         Q(postponed=True) | Q(kick_off__gt=timezone.now()),
         tournament=tournament).order_by('kick_off')
 
-    if request.method == 'POST':
-        created = 0
-        for match in fixture_list:
-            try:
-                Prediction(user=request.user, match=match,
-                           prediction=float(request.POST[str(match.pk)])
-                           ).save()
-                created += 1
-            except (ValueError, KeyError, IntegrityError):
-                continue
-        messages.add_message(request,
-                             messages.SUCCESS if created else messages.ERROR,
-                             _("%d prediction" % created + pluralize(created) + " submited"))
-
-    for prediction in Prediction.objects.filter(user=request.user):
-        if prediction.match in fixture_list:
-            fixture_list = fixture_list.exclude(pk=prediction.match.pk)
-
     paginator = Paginator(fixture_list, 10)
     page = request.GET.get('page')
     try:
@@ -98,20 +80,7 @@ def predictions(request, tour_name):
     other_user = None
     user_score = None
 
-    if request.method == 'POST':
-        try:
-            prediction_id = request.POST['prediction_id']
-            prediction_prediction = float(request.POST['prediction_prediction'])
-            prediction = Prediction.objects.get(pk=prediction_id,
-                                                user=request.user,
-                                                match__kick_off__gt=timezone.now())
-            if prediction.prediction != prediction_prediction:
-                prediction.prediction = prediction_prediction
-                prediction.save()
-                messages.success(request, _("prediction updated"))
-        except (KeyError, ValueError, Prediction.DoesNotExist):
-            messages.error(request, _("prediction failed to be updated"))
-    elif request.GET:
+    if request.GET:
         try:
             other_user = User.objects.get(username=request.GET['user'])
             if other_user == request.user:
@@ -508,5 +477,56 @@ def match_list_todaytomorrow(request):
         'matches_today': matches_today,
         'matches_tomorrow': matches_tomorrow,
         'matches_predicted': matches_predicted,
-    }
+        }
     return render(request, 'partial/match_list_todaytomorrow.html', context)
+
+
+@login_required
+def prediction_create(request, match_pk):
+    match = get_object_or_404(Match,
+                              pk=match_pk,
+                              kick_off__gt=timezone.now())
+    context = {
+        'htmx': True,
+        }
+    if request.method == 'POST':
+        try:
+            Prediction(user=request.user, match=match,
+                    prediction=float(request.POST['prediction_prediction'])
+                    ).save()
+            messages.success(request, _("prediction created"))
+            return render(request, 'partial/messages.html', context)
+        except (KeyError, ValueError):
+            # messages.error(request, _("prediction failed to be created"))
+            context['error'] = True
+        except IntegrityError:
+            messages.error(request, _("Match has already been predicted"))
+            return render(request, 'partial/messages.html', context)
+
+    context['match'] =  match
+    return render(request, 'partial/prediction_create.html', context)
+
+
+@login_required
+def prediction_update(request, prediction_pk):
+    prediction = get_object_or_404(Prediction,
+                                   pk=prediction_pk,
+                                   user=request.user,
+                                   match__kick_off__gt=timezone.now())
+
+    if request.method == 'POST':
+        try:
+            prediction_prediction = float(request.POST['prediction_prediction'])
+            if prediction.prediction != prediction_prediction:
+                prediction.prediction = prediction_prediction
+                prediction.save()
+                # messages.success(request, _("prediction updated"))
+        except (KeyError, ValueError):
+            # messages.error(request, _("prediction failed to be updated"))
+            pass
+
+    context = {
+        'prediction': prediction,
+        'is_participant': True,
+        }
+    return render(request, 'partial/prediction_update.html', context)
