@@ -48,6 +48,11 @@ def submit(request, tour_name):
         Q(postponed=True) | Q(kick_off__gt=timezone.now()),
         tournament=tournament).order_by('kick_off')
 
+    predicted_matches = [p.match.pk for p in Prediction.objects.filter(user=request.user,
+                                                                       match__tournament=tournament)]
+
+    fixture_list = fixture_list.exclude(pk__in=predicted_matches)
+
     paginator = Paginator(fixture_list, 10)
     page = request.GET.get('page')
     try:
@@ -488,23 +493,30 @@ def prediction_create(request, match_pk):
                               kick_off__gt=timezone.now())
     context = {
         'htmx': True,
+        'match': match
         }
+    match_view = request.GET.get('match_view', False)
+
+    template_name = 'partial/prediction_create.html'
     if request.method == 'POST':
         try:
-            Prediction(user=request.user, match=match,
-                    prediction=float(request.POST['prediction_prediction'])
-                    ).save()
+            prediction = Prediction(user=request.user, match=match,
+                    prediction=float(request.POST['prediction_prediction']))
+            prediction.save()
+            context['prediction'] = prediction
             messages.success(request, _("prediction created"))
-            return render(request, 'partial/messages.html', context)
+            template_name = 'partial/messages.html'
         except (KeyError, ValueError):
             # messages.error(request, _("prediction failed to be created"))
             context['error'] = True
         except IntegrityError:
             messages.error(request, _("Match has already been predicted"))
-            return render(request, 'partial/messages.html', context)
+            template_name = 'partial/messages.html'
 
-    context['match'] =  match
-    return render(request, 'partial/prediction_create.html', context)
+    if match_view:
+        template_name = 'partial/match_prediction_form.html'
+
+    return render(request, template_name, context)
 
 
 @login_required
@@ -513,6 +525,8 @@ def prediction_update(request, prediction_pk):
                                    pk=prediction_pk,
                                    user=request.user,
                                    match__kick_off__gt=timezone.now())
+
+    template_name = 'partial/prediction_update.html'
 
     if request.method == 'POST':
         try:
@@ -525,8 +539,14 @@ def prediction_update(request, prediction_pk):
             # messages.error(request, _("prediction failed to be updated"))
             pass
 
+    match_view = request.GET.get('match_view', False)
+
+    if match_view:
+        template_name = 'partial/match_prediction_form.html'
+
     context = {
+        'match': prediction.match,
         'prediction': prediction,
         'is_participant': True,
         }
-    return render(request, 'partial/prediction_update.html', context)
+    return render(request, template_name, context)

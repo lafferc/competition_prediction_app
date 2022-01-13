@@ -1,0 +1,51 @@
+{% if htmx %}
+    {% include 'partial/messages.html' %}
+{% endif %}
+<div id="match_prediction">
+{% if match.has_started %}
+    Your prediction: {{ prediction.prediction }}
+{% else %}
+    <form 
+    {% if prediction %}
+          hx-post="{% url 'competition:prediction_update' prediction.id %}?match_view=true"
+    {% else %}
+          hx-post="{% url 'competition:prediction_create' match.pk %}?match_view=true"
+    {% endif %}
+          hx-target="#match_prediction"
+          hx-swap="outerHTML">
+        {% csrf_token %}
+        <table>
+            <tr>
+                <td>
+                    Your prediction:
+                </td>
+            {% if prediction %}
+                <td id="current_vaule">
+                    {{ prediction.prediction }}
+                </td>
+                <td id="edit_button">
+                    <button type="button" onclick="show_edit_form()"><span class="material-icons">edit</span>edit</button>
+                </td>
+                <td id="new_value_input" style="display:none">
+                        <input type="text" name="prediction_prediction" required="required" pattern="^[-+]?\d+(\.\d+)?$" value="{{ prediction.prediction }}">
+                </td>
+                <td id="submit_button" style="display:none">
+                    <button>
+                        <span class="material-icons">check</span>submit
+                    </button>
+                </td>
+            {% else %}
+                <td>
+                        <input type="text" name="prediction_prediction" required="required" pattern="^[-+]?\d+(\.\d+)?$">
+                </td>
+                <td>
+                    <button>
+                        <span class="material-icons">check</span>predict
+                    </button>
+                </td>
+            {% endif %}
+            </tr>
+        </table>
+    </form>
+{% endif %}
+</div>
