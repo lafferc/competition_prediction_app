@@ -14,9 +14,7 @@
 
 {% block content %}
 {% if fixture_list %}
-    <form id="prediction-submit-form" method="post">{% csrf_token %}
         <p>Note: all times are in local time (<span id="tz_str"></span>)</p>
-        <p>Only predictions that are filled in will be sent to the server, leave the box blank if you want to fill it in later</p>
         <p>Any prediction submitted after {{ TOURNAMENT.sport.match_start_verb|lower }} will not be counted.</p>
         <table>
             <tr>
@@ -26,20 +24,9 @@
                 <th>{{ TOURNAMENT.sport.match_start_verb }}</th>
             </tr>
         {% for match in fixture_list %}
-            <tr>
-                <td>{{ match.match_id }}</td>
-                <td><input type="text" name="{{match.pk}}" pattern="^[-+]?\d+(\.\d+)?$"></td>
-                <td><a href="{% url 'competition:match' match.pk %}">{{ match }}</a></td>
-            {% if match.postponed %}
-                <td>POSTPONED</td>
-            {% else %}
-                <td class="toLocalTime">{{ match.kick_off|date:"Y/m/d H:i:s" }}</td>
-            {% endif %}
-            </tr>
+            {% include 'partial/prediction_create.html' %}
         {% endfor %}
         </table>
-        <input type="submit" value="Submit"/>
-    </form>
     <div class="pagination">
         <span class="step-links">
             {% if fixture_list.has_next %}

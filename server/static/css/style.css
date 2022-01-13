@@ -6,3 +6,11 @@
 .match_no_prediction {
     content: url(../admin/img/icon-alert.svg);
 }
+
+.htmx-indicator {
+    max-width: 100%;
+    max-height: auto;
+    display:block;
+    margin-left: auto;
+    margin-right: auto;
+}

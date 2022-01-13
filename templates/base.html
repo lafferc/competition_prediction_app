@@ -9,7 +9,9 @@
             });
     </script>
     <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
-    <link rel="stylesheet" href="{% static "css/messages.css" %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/messages.css' %}" type="text/css">
+    <script src="https://unpkg.com/htmx.org@1.6.1"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 
 {% block sub_head %}
 {% endblock %}
@@ -40,13 +42,7 @@
 {% endblock %}
         </div><!-- /header -->
 
-    {% if messages %}
-    <ul class="messagelist">
-        {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
+    {% include 'partial/messages.html' %}
 
         <div role="main" class="ui-content jqm-content jqm-fullwidth" style="display: grid; grid-template-columns: auto auto auto;">
             <div style="grid-column-start: 2;">

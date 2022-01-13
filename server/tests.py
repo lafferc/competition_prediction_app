@@ -26,7 +26,6 @@ class ServerViewTest (TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.assertTemplateUsed(response, 'home.html')
-        self.assertEqual(len(response.context['live_tournaments']), 0)
 
     def test_signup_logged_out(self):
         url = reverse('account_signup')
