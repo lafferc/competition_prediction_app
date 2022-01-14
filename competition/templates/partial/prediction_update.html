@@ -15,7 +15,7 @@
               hx-target="#prediction_{{ prediction.id }}"
               hx-swap="outerHTML">
             {% csrf_token %}
-            <input type="text" name="prediction_prediction" pattern="^[-+]?\d+(\.\d+)?$" value="{{ prediction.prediction }}">
+            <input type="text" name="prediction_prediction" required="required" pattern="^[-+]?\d+(\.\d+)?$" value="{{ prediction.prediction }}">
             <button class="material-icons">check</button>
         </form>
     </td>

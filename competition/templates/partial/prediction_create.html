@@ -3,12 +3,13 @@
     <td>
         <form hx-post="{% url 'competition:prediction_create' match.pk %}"
               hx-target="#match_{{match.match_id}}"
-              hx-swap="outerHTML">
+              hx-swap="outerHTML"
+              class="prediction_create">
             {% csrf_token %}
         {% if error %}
             <strong style="color: red;">Invalid input</strong>
         {% endif %}
-            <input type="text" name="prediction_prediction" pattern="^[-+]?\d+(\.\d+)?$">
+            <input type="text" name="prediction_prediction" required="required" pattern="^[-+]?\d+(\.\d+)?$">
             <button class="material-icons">check</button>
         </form>
     </td>
