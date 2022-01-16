@@ -35,14 +35,14 @@ def index(request):
 
 
 @login_required
-def submit(request, tour_name):
-    tournament = get_object_or_404(Tournament, name=tour_name)
+def submit(request, slug):
+    tournament = get_object_or_404(Tournament, slug=slug)
 
     if tournament.is_closed():
-        return redirect("competition:table", tour_name=tour_name)
+        return redirect("competition:table", slug=slug)
 
     if not tournament.participants.filter(pk=request.user.pk).exists():
-        return redirect("competition:join", tour_name=tour_name)
+        return redirect("competition:join", slug=slug)
 
     fixture_list = Match.objects.filter(
         Q(postponed=True) | Q(kick_off__gt=timezone.now()),
@@ -73,13 +73,13 @@ def submit(request, tour_name):
 
 
 @login_required
-def predictions(request, tour_name):
-    tournament = get_object_or_404(Tournament, name=tour_name)
+def predictions(request, slug):
+    tournament = get_object_or_404(Tournament, slug=slug)
 
     is_participant = True
     if not tournament.participants.filter(pk=request.user.pk).exists():
         if not tournament.is_closed():
-            return redirect("competition:table", tour_name=tour_name)
+            return redirect("competition:table", slug=slug)
         is_participant = False
 
     other_user = None
@@ -105,7 +105,7 @@ def predictions(request, tour_name):
 
     if not other_user:
         if not is_participant:
-            return redirect("competition:table", tour_name=tour_name)
+            return redirect("competition:table", slug=slug)
         user_score = Participant.objects.get(user=request.user, tournament=tournament).score
         predictions = Prediction.objects.filter(user=request.user,
                                                 match__tournament=tournament
@@ -126,14 +126,14 @@ def predictions(request, tour_name):
 
 
 @login_required
-def table(request, tour_name):
-    tournament = get_object_or_404(Tournament, name=tour_name)
+def table(request, slug):
+    tournament = get_object_or_404(Tournament, slug=slug)
     try:
         participant = Participant.objects.get(tournament=tournament, user=request.user)
         is_participant = True
     except Participant.DoesNotExist:
         if not tournament.is_closed():
-            return redirect("competition:join", tour_name=tour_name)
+            return redirect("competition:join", slug=slug)
         is_participant = False
 
     if is_participant:
@@ -174,8 +174,8 @@ def table(request, tour_name):
 
 
 @login_required
-def org_table(request, tour_name, org_name):
-    tournament = get_object_or_404(Tournament, name=tour_name)
+def org_table(request, slug, org_name):
+    tournament = get_object_or_404(Tournament, slug=slug)
     participant = get_object_or_404(Participant, tournament=tournament, user=request.user)
     try:
         comp = participant.competition_set.get(organisation__name=org_name)
@@ -206,11 +206,11 @@ def org_table(request, tour_name, org_name):
 
 
 @login_required
-def join(request, tour_name):
-    tournament = get_object_or_404(Tournament, name=tour_name)
+def join(request, slug):
+    tournament = get_object_or_404(Tournament, slug=slug)
 
     if tournament.is_closed():
-        return redirect("competition:table", tour_name=tour_name)
+        return redirect("competition:table", slug=slug)
 
     if request.method == 'POST':
         try:
@@ -218,7 +218,7 @@ def join(request, tour_name):
             messages.success(request, _("You have joined the competition"))
         except IntegrityError:
             pass
-        return redirect('competition:submit', tour_name=tour_name)
+        return redirect('competition:submit', slug=slug)
 
     bonus = float(tournament.bonus)
 
@@ -240,8 +240,8 @@ def join(request, tour_name):
 
 
 @permission_required('competition.change_match')
-def results(request, tour_name):
-    tournament = get_object_or_404(Tournament, name=tour_name)
+def results(request, slug):
+    tournament = get_object_or_404(Tournament, slug=slug)
 
     is_participant = True
     if not tournament.participants.filter(pk=request.user.pk).exists():
@@ -282,13 +282,13 @@ def results(request, tour_name):
 
 
 @login_required
-def rules(request, tour_name):
-    tournament = get_object_or_404(Tournament, name=tour_name)
+def rules(request, slug):
+    tournament = get_object_or_404(Tournament, slug=slug)
 
     is_participant = True
     if not tournament.participants.filter(pk=request.user.pk).exists():
         if tournament.state == Tournament.ACTIVE:
-            return redirect("competition:join", tour_name=tour_name)
+            return redirect("competition:join", slug=slug)
         is_participant = False
 
     bonus = float(tournament.bonus)
@@ -365,13 +365,13 @@ def match(request, match_pk):
 
 
 @login_required
-def benchmark_table(request, tour_name):
-    tournament = get_object_or_404(Tournament, name=tour_name)
+def benchmark_table(request, slug):
+    tournament = get_object_or_404(Tournament, slug=slug)
 
     try:
         Participant.objects.get(tournament=tournament, user=request.user)
     except Participant.DoesNotExist:
-        return redirect("competition:join", tour_name=tour_name)
+        return redirect("competition:join", slug=slug)
 
     participant_list = tournament.participant_set.all()
     benchmark_list = tournament.benchmark_set.all()

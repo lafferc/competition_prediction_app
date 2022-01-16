@@ -110,7 +110,7 @@ class MemberViewTest(TestCase):
 
     def test_use_token_post(self):
         url = reverse('member:use_token')
-        r_url = reverse('competition:org_table', kwargs={'tour_name': self.tourn.name,
+        r_url = reverse('competition:org_table', kwargs={'slug': self.tourn.slug,
                                                          'org_name': self.org.name})
         self.ticket.refresh_from_db()
         self.assertFalse(self.ticket.used)
@@ -129,7 +129,7 @@ class MemberViewTest(TestCase):
 
     def test_use_token_participant_post(self):
         url = reverse('member:use_token')
-        r_url = reverse('competition:org_table', kwargs={'tour_name': self.tourn.name,
+        r_url = reverse('competition:org_table', kwargs={'slug': self.tourn.slug,
                                                          'org_name': self.org.name})
         self.ticket.refresh_from_db()
         self.assertFalse(self.ticket.used)

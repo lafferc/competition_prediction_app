@@ -78,7 +78,7 @@ def use_token(request):
             ticket.save()
             messages.success(request, _("Ticket accepted"))
             return redirect('competition:org_table',
-                            tour_name=tourn.name,
+                            slug=tourn.slug,
                             org_name=ticket.competition.organisation.name)
         except Exception:
             g_logger.exception("Failed to process token")

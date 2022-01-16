@@ -6,6 +6,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core import mail
 from django.core.exceptions import ValidationError
 from django.urls import reverse
+from django.template.defaultfilters import slugify
 from django.template.loader import render_to_string
 from django.utils import timezone
 from io import StringIO
@@ -98,11 +99,13 @@ class Tournament(models.Model):
                      ("extra_time", "extra_time"),),
             null=True,
             blank=True)
+    slug = models.SlugField(unique=True)
+
+    def get_absolute_url(self):
+        return reverse('competition:submit', kwargs={'slug': self.slug})
 
     def is_closed(self):
-        if self.state in [self.FINISHED, self.ARCHIVED]:
-            return True
-        return False
+        return self.state in [self.FINISHED, self.ARCHIVED]
 
     def __str__(self):
         return self.name
@@ -179,7 +182,7 @@ class Tournament(models.Model):
         for user in User.objects.all():
             message = render_to_string('open_email.html', {
                 'user': user,
-                'tournament_name': self.name,
+                'tournament': self,
                 'site_name': current_site.name,
                 'site_domain': current_site.name,
                 'protocol': 'https' if request.is_secure() else 'http',
@@ -199,6 +202,10 @@ class Tournament(models.Model):
     def save(self, *args, **kwargs):
         csv_file = self.add_matches
         self.add_matches = None
+
+        if not self.slug:
+            self.slug = slugify(self.name)
+
         super(Tournament, self).save(*args, **kwargs)
 
         if not csv_file:
@@ -329,7 +336,7 @@ class Participant(Predictor):
 
     def get_url(self):
         return "%s?user=%s" % (
-            reverse('competition:predictions', args=(self.tournament.name,)),
+            reverse('competition:predictions', args=(self.tournament.slug,)),
             self.user.username)
 
     class Meta:

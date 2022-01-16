@@ -7,7 +7,7 @@
     <select onchange="location = this.options[this.selectedIndex].value;">
         <option>Click to view sub-competitions</option>
         {% for competition in competitions %}
-        <option value="{% url 'competition:org_table' TOURNAMENT competition %}">{{ competition }}</option>
+        <option value="{% url 'competition:org_table' TOURNAMENT.slug competition %}">{{ competition }}</option>
         {% endfor %}
     </select> 
     {% endif %}
@@ -56,7 +56,7 @@
     {% endif %}
     {% if has_benchmark %}
     <div>
-        <a href="{% url 'competition:benchmark_table' TOURNAMENT %}">Show benchmarks</a>
+        <a href="{% url 'competition:benchmark_table' TOURNAMENT.slug %}">Show benchmarks</a>
     </div>
     {% endif %}
 {% endif %}

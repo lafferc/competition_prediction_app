@@ -57,10 +57,11 @@ class TournamentAdmin(admin.ModelAdmin):
     )
     fieldsets = (
         (None, {
-            'fields': ('name', 'sport', 'state', 'bonus', 'draw_bonus', 'year',
+            'fields': ('name', 'slug', 'sport', 'state', 'bonus', 'draw_bonus', 'year',
                        'winner', 'add_matches', 'test_features_enabled', 'draw_definition')
         }),
     )
+    prepopulated_fields = {"slug": ("name",)}
 
     def get_readonly_fields(self, request, obj):
         if obj:
@@ -72,7 +73,7 @@ class TournamentAdmin(admin.ModelAdmin):
         if request.user.has_perm('Tournament.csv_upload'):
             if not obj or obj.state not in [Tournament.FINISHED, Tournament.ARCHIVED]:
                 return self.fieldsets
-        return ((None, {'fields': ('name', 'sport', 'state', 'bonus', 'draw_bonus',
+        return ((None, {'fields': ('name', 'slug', 'sport', 'state', 'bonus', 'draw_bonus',
                                    'year', 'winner', 'draw_definition')}),)
 
     def participant_count(self, obj):
