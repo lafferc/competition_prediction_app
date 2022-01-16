@@ -33,13 +33,13 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('token', models.CharField(unique=True, max_length=10, blank=True)),
                 ('used', models.BooleanField(default=False)),
-                ('competition', models.ForeignKey(to='member.Competition')),
+                ('competition', models.ForeignKey(to='member.Competition', on_delete=models.CASCADE)),
             ],
         ),
         migrations.AddField(
             model_name='competition',
             name='organisation',
-            field=models.ForeignKey(to='member.Organisation'),
+            field=models.ForeignKey(to='member.Organisation', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='competition',
@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='competition',
             name='tournament',
-            field=models.ForeignKey(to='competition.Tournament'),
+            field=models.ForeignKey(to='competition.Tournament', on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='competition',

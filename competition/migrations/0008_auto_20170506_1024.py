@@ -14,22 +14,22 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='match',
             name='away_team_winner_of',
-            field=models.ForeignKey(related_name='match_next_away', blank=True, to='competition.Match', null=True),
+            field=models.ForeignKey(related_name='match_next_away', blank=True, to='competition.Match', null=True, on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='match',
             name='home_team_winner_of',
-            field=models.ForeignKey(related_name='match_next_home', blank=True, to='competition.Match', null=True),
+            field=models.ForeignKey(related_name='match_next_home', blank=True, to='competition.Match', null=True, on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='match',
             name='away_team',
-            field=models.ForeignKey(related_name='match_away_team', to='competition.Team', null=True),
+            field=models.ForeignKey(related_name='match_away_team', to='competition.Team', null=True, on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='match',
             name='home_team',
-            field=models.ForeignKey(related_name='match_home_team', to='competition.Team', null=True),
+            field=models.ForeignKey(related_name='match_home_team', to='competition.Team', null=True, on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='team',

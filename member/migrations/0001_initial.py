@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ('display_name_format', models.IntegerField(default=0, help_text=b'This how other users will see you name displayed', choices=[(0, b'Full Name'), (1, b'username'), (2, b'user_id')])),
                 ('can_receive_emails', models.BooleanField(default=True, help_text=b'Global email setting, if false the user will not receive any emails')),
                 ('email_on_new_competition', models.BooleanField(default=True, help_text=b'User will receive an email when new competitions are started')),
-                ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
+                ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
         ),
         migrations.RunPython(init_profiles, migrations.RunPython.noop),
