@@ -1,4 +1,4 @@
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpResponse, Http404
 from django.template import loader
 from django.template.defaultfilters import pluralize
@@ -14,6 +14,7 @@ from django.utils.translation import gettext as _
 
 import logging
 import decimal
+import datetime
 from itertools import chain
 from .models import Tournament, Match, Prediction, Participant, Benchmark
 from member.models import Competition
@@ -34,36 +35,23 @@ def index(request):
 
 
 @login_required
-def submit(request, tour_name):
-    tournament = get_object_or_404(Tournament, name=tour_name)
+def submit(request, slug):
+    tournament = get_object_or_404(Tournament, slug=slug)
 
     if tournament.is_closed():
-        return redirect("competition:table", tour_name=tour_name)
+        return redirect("competition:table", slug=slug)
 
     if not tournament.participants.filter(pk=request.user.pk).exists():
-        return redirect("competition:join", tour_name=tour_name)
+        return redirect("competition:join", slug=slug)
 
     fixture_list = Match.objects.filter(
         Q(postponed=True) | Q(kick_off__gt=timezone.now()),
         tournament=tournament).order_by('kick_off')
 
-    if request.method == 'POST':
-        created = 0
-        for match in fixture_list:
-            try:
-                Prediction(user=request.user, match=match,
-                           prediction=float(request.POST[str(match.pk)])
-                           ).save()
-                created += 1
-            except (ValueError, KeyError, IntegrityError):
-                continue
-        messages.add_message(request,
-                             messages.SUCCESS if created else messages.ERROR,
-                             _("%d prediction" % created + pluralize(created) + " submited"))
+    predicted_matches = [p.match.pk for p in Prediction.objects.filter(user=request.user,
+                                                                       match__tournament=tournament)]
 
-    for prediction in Prediction.objects.filter(user=request.user):
-        if prediction.match in fixture_list:
-            fixture_list = fixture_list.exclude(pk=prediction.match.pk)
+    fixture_list = fixture_list.exclude(pk__in=predicted_matches)
 
     paginator = Paginator(fixture_list, 10)
     page = request.GET.get('page')
@@ -85,32 +73,19 @@ def submit(request, tour_name):
 
 
 @login_required
-def predictions(request, tour_name):
-    tournament = get_object_or_404(Tournament, name=tour_name)
+def predictions(request, slug):
+    tournament = get_object_or_404(Tournament, slug=slug)
 
     is_participant = True
     if not tournament.participants.filter(pk=request.user.pk).exists():
         if not tournament.is_closed():
-            return redirect("competition:table", tour_name=tour_name)
+            return redirect("competition:table", slug=slug)
         is_participant = False
 
     other_user = None
     user_score = None
 
-    if request.method == 'POST':
-        try:
-            prediction_id = request.POST['prediction_id']
-            prediction_prediction = float(request.POST['prediction_prediction'])
-            prediction = Prediction.objects.get(pk=prediction_id,
-                                                user=request.user,
-                                                match__kick_off__gt=timezone.now())
-            if prediction.prediction != prediction_prediction:
-                prediction.prediction = prediction_prediction
-                prediction.save()
-                messages.success(request, _("prediction updated"))
-        except (KeyError, ValueError, Prediction.DoesNotExist):
-            messages.error(request, _("prediction failed to be updated"))
-    elif request.GET:
+    if request.GET:
         try:
             other_user = User.objects.get(username=request.GET['user'])
             if other_user == request.user:
@@ -130,7 +105,7 @@ def predictions(request, tour_name):
 
     if not other_user:
         if not is_participant:
-            return redirect("competition:table", tour_name=tour_name)
+            return redirect("competition:table", slug=slug)
         user_score = Participant.objects.get(user=request.user, tournament=tournament).score
         predictions = Prediction.objects.filter(user=request.user,
                                                 match__tournament=tournament
@@ -151,14 +126,14 @@ def predictions(request, tour_name):
 
 
 @login_required
-def table(request, tour_name):
-    tournament = get_object_or_404(Tournament, name=tour_name)
+def table(request, slug):
+    tournament = get_object_or_404(Tournament, slug=slug)
     try:
         participant = Participant.objects.get(tournament=tournament, user=request.user)
         is_participant = True
     except Participant.DoesNotExist:
         if not tournament.is_closed():
-            return redirect("competition:join", tour_name=tour_name)
+            return redirect("competition:join", slug=slug)
         is_participant = False
 
     if is_participant:
@@ -199,8 +174,8 @@ def table(request, tour_name):
 
 
 @login_required
-def org_table(request, tour_name, org_name):
-    tournament = get_object_or_404(Tournament, name=tour_name)
+def org_table(request, slug, org_name):
+    tournament = get_object_or_404(Tournament, slug=slug)
     participant = get_object_or_404(Participant, tournament=tournament, user=request.user)
     try:
         comp = participant.competition_set.get(organisation__name=org_name)
@@ -231,11 +206,11 @@ def org_table(request, tour_name, org_name):
 
 
 @login_required
-def join(request, tour_name):
-    tournament = get_object_or_404(Tournament, name=tour_name)
+def join(request, slug):
+    tournament = get_object_or_404(Tournament, slug=slug)
 
     if tournament.is_closed():
-        return redirect("competition:table", tour_name=tour_name)
+        return redirect("competition:table", slug=slug)
 
     if request.method == 'POST':
         try:
@@ -243,7 +218,7 @@ def join(request, tour_name):
             messages.success(request, _("You have joined the competition"))
         except IntegrityError:
             pass
-        return redirect('competition:submit', tour_name=tour_name)
+        return redirect('competition:submit', slug=slug)
 
     bonus = float(tournament.bonus)
 
@@ -265,8 +240,8 @@ def join(request, tour_name):
 
 
 @permission_required('competition.change_match')
-def results(request, tour_name):
-    tournament = get_object_or_404(Tournament, name=tour_name)
+def results(request, slug):
+    tournament = get_object_or_404(Tournament, slug=slug)
 
     is_participant = True
     if not tournament.participants.filter(pk=request.user.pk).exists():
@@ -307,13 +282,13 @@ def results(request, tour_name):
 
 
 @login_required
-def rules(request, tour_name):
-    tournament = get_object_or_404(Tournament, name=tour_name)
+def rules(request, slug):
+    tournament = get_object_or_404(Tournament, slug=slug)
 
     is_participant = True
     if not tournament.participants.filter(pk=request.user.pk).exists():
         if tournament.state == Tournament.ACTIVE:
-            return redirect("competition:join", tour_name=tour_name)
+            return redirect("competition:join", slug=slug)
         is_participant = False
 
     bonus = float(tournament.bonus)
@@ -390,13 +365,13 @@ def match(request, match_pk):
 
 
 @login_required
-def benchmark_table(request, tour_name):
-    tournament = get_object_or_404(Tournament, name=tour_name)
+def benchmark_table(request, slug):
+    tournament = get_object_or_404(Tournament, slug=slug)
 
     try:
         Participant.objects.get(tournament=tournament, user=request.user)
     except Participant.DoesNotExist:
-        return redirect("competition:join", tour_name=tour_name)
+        return redirect("competition:join", slug=slug)
 
     participant_list = tournament.participant_set.all()
     benchmark_list = tournament.benchmark_set.all()
@@ -458,3 +433,120 @@ def benchmark(request, benchmark_pk):
         'live_tournaments': Tournament.objects.filter(state=Tournament.ACTIVE),
     }
     return HttpResponse(template.render(context, request))
+
+
+@login_required
+def tournament_list_open(request):
+    context = {
+        'live_tournaments': Tournament.objects.filter(state=Tournament.ACTIVE),
+    }
+    return render(request, 'partial/tournament_list_open.html', context)
+
+
+@login_required
+def tournament_list_closed(request):
+    context = {
+        'closed_tournaments': Tournament.objects.filter(state=Tournament.FINISHED).order_by('-pk'),
+    }
+    return render(request, 'partial/tournament_list_closed.html', context)
+
+
+@login_required
+def match_list_todaytomorrow(request):
+    user_tourns = Tournament.objects.filter(state=Tournament.ACTIVE,
+                                            participant__user=request.user)
+
+    today = datetime.date.today()
+    matches_today = Match.objects.filter(
+            tournament__in=user_tourns,
+            kick_off__year=today.year,
+            kick_off__month=today.month,
+            kick_off__day=today.day,
+            postponed=False
+            ).order_by('kick_off')
+
+    tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    matches_tomorrow = Match.objects.filter(
+            tournament__in=user_tourns,
+            kick_off__year=tomorrow.year,
+            kick_off__month=tomorrow.month,
+            kick_off__day=tomorrow.day,
+            postponed=False
+            ).order_by('kick_off')
+
+    matches_predicted = list(chain(
+        matches_today.filter(prediction__user=request.user),
+        matches_tomorrow.filter(prediction__user=request.user)))
+
+    context = {
+        'matches_today': matches_today,
+        'matches_tomorrow': matches_tomorrow,
+        'matches_predicted': matches_predicted,
+        }
+    return render(request, 'partial/match_list_todaytomorrow.html', context)
+
+
+@login_required
+def prediction_create(request, match_pk):
+    match = get_object_or_404(Match,
+                              pk=match_pk,
+                              kick_off__gt=timezone.now())
+    context = {
+        'htmx': True,
+        'match': match
+        }
+    match_view = request.GET.get('match_view', False)
+
+    template_name = 'partial/prediction_create.html'
+    if request.method == 'POST':
+        try:
+            prediction = Prediction(user=request.user, match=match,
+                    prediction=float(request.POST['prediction_prediction']))
+            prediction.save()
+            context['prediction'] = prediction
+            messages.success(request, _("prediction created"))
+            template_name = 'partial/messages.html'
+        except (KeyError, ValueError):
+            # messages.error(request, _("prediction failed to be created"))
+            context['error'] = True
+        except IntegrityError:
+            messages.error(request, _("Match has already been predicted"))
+            template_name = 'partial/messages.html'
+
+    if match_view:
+        template_name = 'partial/match_prediction_form.html'
+
+    return render(request, template_name, context)
+
+
+@login_required
+def prediction_update(request, prediction_pk):
+    prediction = get_object_or_404(Prediction,
+                                   pk=prediction_pk,
+                                   user=request.user,
+                                   match__kick_off__gt=timezone.now())
+
+    template_name = 'partial/prediction_update.html'
+
+    if request.method == 'POST':
+        try:
+            prediction_prediction = float(request.POST['prediction_prediction'])
+            if prediction.prediction != prediction_prediction:
+                prediction.prediction = prediction_prediction
+                prediction.save()
+                # messages.success(request, _("prediction updated"))
+        except (KeyError, ValueError):
+            # messages.error(request, _("prediction failed to be updated"))
+            pass
+
+    match_view = request.GET.get('match_view', False)
+
+    if match_view:
+        template_name = 'partial/match_prediction_form.html'
+
+    context = {
+        'match': prediction.match,
+        'prediction': prediction,
+        'is_participant': True,
+        }
+    return render(request, template_name, context)

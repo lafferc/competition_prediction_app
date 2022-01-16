@@ -82,7 +82,7 @@ class Profile(models.Model):
 
     def email_user(self, subject, message, new_comp=False, connection=None):
         if not self.user.email:
-            g_logger.warn("User %s doesn't have a valid email" % self.get_name())
+            g_logger.warning("User %s doesn't have a valid email" % self.get_name())
             return False
         if not self.can_receive_emails:
             return False
@@ -130,8 +130,8 @@ class Organisation(models.Model):
 
 
 class Competition(models.Model):
-    organisation = models.ForeignKey(Organisation)
-    tournament = models.ForeignKey(Tournament)
+    organisation = models.ForeignKey(Organisation, models.CASCADE)
+    tournament = models.ForeignKey(Tournament, models.CASCADE)
     participants = models.ManyToManyField(Participant)
     token_len = models.PositiveIntegerField(default=6)
 
@@ -143,7 +143,7 @@ class Competition(models.Model):
 
 
 class Ticket(models.Model):
-    competition = models.ForeignKey(Competition)
+    competition = models.ForeignKey(Competition, models.CASCADE)
     token = models.CharField(max_length=10, unique=True, blank=True)
     used = models.BooleanField(default=False)
 

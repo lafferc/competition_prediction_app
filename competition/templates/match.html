@@ -3,6 +3,15 @@
 {% load static %}
 {% block sub_head %}
 <script src={% static 'competition/timezone_helper.js'%}></script>
+<script>
+    function show_edit_form () {
+        $( "#current_vaule").hide();
+        $( "#edit_button").hide();
+        $( "#new_value_input").show();
+        $( "#submit_button").show();
+    }
+</script>
+
 {% endblock %}
 
 {% block content %}
@@ -28,57 +37,7 @@ Away Team: Winner of {{ match.away_team_winner_of }}
 <span class="toLocalTime">{{ match.kick_off|date:"Y/m/d H:i:s" }}</span>(<span id="tz_str"></span>)
 {% endif %}
 <br/>
-{% if match.has_started %}
-Your prediction: {{ prediction.prediction }}
-{% else %}
-<table>
-    <tr>
-        <td>
-            Your prediction:
-        </td>
-    {% if prediction %}
-        <script>
-        function show_edit_form () {
-            $( "#current_vaule").hide();
-            $( "#edit_button").hide();
-            $( "#new_value_input").show();
-            $( "#submit_button").show();
-        }
-        function submit_form (form_id) {
-            document.getElementById(form_id).submit();
-        }
-        </script>
-
-        <td id="current_vaule">
-            {{ prediction.prediction }}
-        </td>
-        <td id="edit_button">
-            <button data-icon="edit" onclick="show_edit_form()">edit</button>
-        </td>
-        <td id="new_value_input" style="display:none">
-            <form id="edit_form" action={% url 'competition:predictions' match.tournament.name %} method="post">
-                {% csrf_token %}
-                <input type="hidden" name="prediction_id" value="{{ prediction.id }}">
-                <input type="text" name="prediction_prediction" value="{{ prediction.prediction }}">
-            </form>
-        </td>
-        <td id="submit_button" style="display:none">
-            <button data-icon="check" onclick="submit_form('edit_form')">submit</button>
-        </td>
-    {% else %}
-        <td>
-            <form id="create_form" action={% url 'competition:submit' match.tournament.name %} method="post">
-                {% csrf_token %}
-                <input type="text" name="{{match.pk}}" pattern="^[-+]?\d+(\.\d+)?$">
-        </td>
-        <td>
-            <button data-icon="check" onclick="submit_form('create_form')">submit</button>
-        </td>
-    </form>
-    {% endif %}
-    </tr>
-</table>
-{% endif %}
+{% include 'partial/match_prediction_form.html' %}
 <br/>
 
 {% if match.score != None %}

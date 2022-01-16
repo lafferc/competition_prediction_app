@@ -57,10 +57,11 @@ class TournamentAdmin(admin.ModelAdmin):
     )
     fieldsets = (
         (None, {
-            'fields': ('name', 'sport', 'state', 'bonus', 'draw_bonus', 'year',
+            'fields': ('name', 'slug', 'sport', 'state', 'bonus', 'draw_bonus', 'year',
                        'winner', 'add_matches', 'test_features_enabled', 'draw_definition')
         }),
     )
+    prepopulated_fields = {"slug": ("name",)}
 
     def get_readonly_fields(self, request, obj):
         if obj:
@@ -72,7 +73,7 @@ class TournamentAdmin(admin.ModelAdmin):
         if request.user.has_perm('Tournament.csv_upload'):
             if not obj or obj.state not in [Tournament.FINISHED, Tournament.ARCHIVED]:
                 return self.fieldsets
-        return ((None, {'fields': ('name', 'sport', 'state', 'bonus', 'draw_bonus',
+        return ((None, {'fields': ('name', 'slug', 'sport', 'state', 'bonus', 'draw_bonus',
                                    'year', 'winner', 'draw_definition')}),)
 
     def participant_count(self, obj):
@@ -88,19 +89,23 @@ class TournamentAdmin(admin.ModelAdmin):
         g_logger.debug("pop_leaderboard(%r, %r, %r)", self, request, queryset)
         for tournament in queryset:
             tournament.update_table()
+    pop_leaderboard.allowed_permissions = ('change',)
 
     def close_tournament(self, request, queryset):
         g_logger.debug("close_tournament(%r, %r, %r)", self, request, queryset)
         for tournament in queryset:
             tournament.close(request)
+    close_tournament.allowed_permissions = ('change',)
 
     def open_tournament(self, request, queryset):
         g_logger.debug("open_tournament(%r, %r, %r)", self, request, queryset)
         for tournament in queryset:
             tournament.open(request)
+    open_tournament.allowed_permissions = ('change',)
 
     def archive_tournament(self, request, queryset):
         queryset.update(state=Tournament.ARCHIVED)
+    archive_tournament.allowed_permissions = ('change',)
 
 
 class MatchAdmin(admin.ModelAdmin):
@@ -157,9 +162,11 @@ class MatchAdmin(admin.ModelAdmin):
             if match.score is None:
                 continue
             match.tournament.check_predictions(match)
+    calc_match_result.allowed_permissions = ('change',)
 
     def postpone(self, request, queryset):
         queryset.update(postponed=True)
+    postpone.allowed_permissions = ('change',)
 
     def show_top_ten(self, request, queryset):
         from member.forms import SocialProviderForm 
@@ -202,6 +209,7 @@ class MatchAdmin(admin.ModelAdmin):
                                'form': form,
                                'action': 'show_top_ten',
                                })
+    show_top_ten.allowed_permissions = ('change',)
 
     def swap_home_and_away(self, request, queryset):
         queryset.update(home_team=F('away_team'),
@@ -212,6 +220,7 @@ class MatchAdmin(admin.ModelAdmin):
         Prediction.objects.filter(
                 match__in=queryset
                 ).update(prediction=F('prediction')*-1)
+    swap_home_and_away.allowed_permissions = ('change',)
 
 
 class PredictionAdmin(admin.ModelAdmin):

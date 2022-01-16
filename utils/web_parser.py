@@ -1,8 +1,9 @@
-import urllib2
+import sys
 import csv
 import datetime
 import itertools
 from bs4 import BeautifulSoup
+from urllib.request import urlopen
 
 match_by_str = {}
 match_by_id = {}
@@ -147,7 +148,7 @@ if __name__ == "__main__" :
         if args.debug:
             print("loading page " + url % date)
 
-        page = urllib2.urlopen(url % date)
+        page = urlopen(url % date)
         soup = BeautifulSoup(page, features="html.parser")
 
         next_id = parse_matches(soup, matches, args.comps, next_id, tz_diff, debug=args.debug)

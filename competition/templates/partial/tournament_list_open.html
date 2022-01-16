@@ -1,0 +1,10 @@
+{% if live_tournaments %}
+    <div class="live_tournaments">
+        <h3>Live competitions</h3>
+        <ul>
+        {% for tournament in live_tournaments %}
+            <li><a href="{{ tournament.get_absolute_url }}">{{ tournament.name }}</a></li>
+        {% endfor %}
+        </ul>
+    </div>
+{% endif %}

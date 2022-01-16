@@ -14,16 +14,16 @@
     <ul>
     {% if is_participant %}
         {% if TOURNAMENT.state == 1 %}
-        <li><a href="{% url 'competition:submit' TOURNAMENT.name %}">Predict</a></li>
+        <li><a href="{{ TOURNAMENT.get_absolute_url }}">Predict</a></li>
         {% endif %}
-        <li><a href="{% url 'competition:predictions' TOURNAMENT.name %}">My Predictions</a></li>
-        <li><a href="{% url 'competition:rules' TOURNAMENT.name %}">Rules</a></li>
+        <li><a href="{% url 'competition:predictions' TOURNAMENT.slug %}">My Predictions</a></li>
+        <li><a href="{% url 'competition:rules' TOURNAMENT.slug %}">Rules</a></li>
     {% endif %}
     {% if TOURNAMENT.state == 1 and perms.competition.change_match %}
-        <li><a href="{% url 'competition:results' TOURNAMENT.name %}">Results</a></li>
+        <li><a href="{% url 'competition:results' TOURNAMENT.slug %}">Results</a></li>
     {% endif %}
     {% if TOURNAMENT.state != 1 or is_participant %}
-        <li><a href="{% url 'competition:table' TOURNAMENT.name %}">Leaderboard</a></li>
+        <li><a href="{% url 'competition:table' TOURNAMENT.slug %}">Leaderboard</a></li>
     {% endif %}
     </ul>
     {% endif %}
@@ -34,7 +34,7 @@
 
 {% block menu %}
     {% for tournament in live_tournaments %}
-                <li><a href="{% url 'competition:submit' tournament.name %}">{{ tournament.name }}</a></li>
+                <li><a href="{{ tournament.get_absolute_url }}">{{ tournament.name }}</a></li>
     {% endfor %}
 {% endblock %}
 

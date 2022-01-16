@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User, Permission
 from django.test import TestCase, TransactionTestCase
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import timezone
 
 import datetime
@@ -21,32 +21,32 @@ class CompetitionViewLoggedOutTest(TestCase):
         self.assertRedirects(response, self.url_login_next + url)
 
     def test_predictions(self):
-        url = reverse('competition:predictions', kwargs={'tour_name':'tourn'})
+        url = reverse('competition:predictions', kwargs={'slug':'tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, self.url_login_next + url)
 
     def test_table(self):
-        url = reverse('competition:table', kwargs={'tour_name':'tourn'})
+        url = reverse('competition:table', kwargs={'slug':'tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, self.url_login_next + url)
 
     def test_org_table(self):
-        url = reverse('competition:org_table', kwargs={'tour_name':'tourn', 'org_name': 'org'})
+        url = reverse('competition:org_table', kwargs={'slug':'tourn', 'org_name': 'org'})
         response = self.client.get(url)
         self.assertRedirects(response, self.url_login_next + url)
 
     def test_join(self):
-        url = reverse('competition:join', kwargs={'tour_name':'tourn'})
+        url = reverse('competition:join', kwargs={'slug':'tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, self.url_login_next + url)
 
     def test_results(self):
-        url = reverse('competition:results', kwargs={'tour_name':'tourn'})
+        url = reverse('competition:results', kwargs={'slug':'tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, self.url_login_next + url)
 
     def test_rules(self):
-        url = reverse('competition:rules', kwargs={'tour_name':'tourn'})
+        url = reverse('competition:rules', kwargs={'slug':'tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, self.url_login_next + url)
 
@@ -56,7 +56,7 @@ class CompetitionViewLoggedOutTest(TestCase):
         self.assertRedirects(response, self.url_login_next + url)
 
     def test_benchmark_table(self):
-        url = reverse('competition:benchmark_table', kwargs={'tour_name':'tourn'})
+        url = reverse('competition:benchmark_table', kwargs={'slug':'tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, self.url_login_next + url)
 
@@ -103,79 +103,79 @@ class CompetitionViewNotParticipantTest(TestCase):
         self.assertTemplateUsed(response, 'index.html')
 
     def test_submit_pending(self):
-        url = reverse('competition:submit', kwargs={'tour_name':'pending_tourn'})
-        join_url = reverse('competition:join', kwargs={'tour_name':'pending_tourn'})
+        url = reverse('competition:submit', kwargs={'slug':'pending_tourn'})
+        join_url = reverse('competition:join', kwargs={'slug':'pending_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, join_url)
 
     def test_submit_active(self):
-        url = reverse('competition:submit', kwargs={'tour_name':'active_tourn'})
-        join_url = reverse('competition:join', kwargs={'tour_name':'active_tourn'})
+        url = reverse('competition:submit', kwargs={'slug':'active_tourn'})
+        join_url = reverse('competition:join', kwargs={'slug':'active_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, join_url)
 
     def test_submit_finished(self):
-        url = reverse('competition:submit', kwargs={'tour_name':'finished_tourn'})
-        r_url = reverse('competition:table', kwargs={'tour_name':'finished_tourn'})
+        url = reverse('competition:submit', kwargs={'slug':'finished_tourn'})
+        r_url = reverse('competition:table', kwargs={'slug':'finished_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, r_url)
 
     def test_submit_archived(self):
-        url = reverse('competition:submit', kwargs={'tour_name':'archived_tourn'})
-        r_url = reverse('competition:table', kwargs={'tour_name':'archived_tourn'})
+        url = reverse('competition:submit', kwargs={'slug':'archived_tourn'})
+        r_url = reverse('competition:table', kwargs={'slug':'archived_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, r_url)
 
     def test_predictions_pending(self):
-        url = reverse('competition:predictions', kwargs={'tour_name':'pending_tourn'})
-        r_url = reverse('competition:join', kwargs={'tour_name':'pending_tourn'})
+        url = reverse('competition:predictions', kwargs={'slug':'pending_tourn'})
+        r_url = reverse('competition:join', kwargs={'slug':'pending_tourn'})
         response = self.client.get(url, follow=True)
         self.assertRedirects(response, r_url)
 
     def test_predictions_active(self):
-        url = reverse('competition:predictions', kwargs={'tour_name':'active_tourn'})
-        r_url = reverse('competition:join', kwargs={'tour_name':'active_tourn'})
+        url = reverse('competition:predictions', kwargs={'slug':'active_tourn'})
+        r_url = reverse('competition:join', kwargs={'slug':'active_tourn'})
         response = self.client.get(url, follow=True)
         self.assertRedirects(response, r_url)
 
     def test_predictions_finished(self):
-        url = reverse('competition:predictions', kwargs={'tour_name':'finished_tourn'})
-        r_url = reverse('competition:table', kwargs={'tour_name':'finished_tourn'})
+        url = reverse('competition:predictions', kwargs={'slug':'finished_tourn'})
+        r_url = reverse('competition:table', kwargs={'slug':'finished_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, r_url)
 
     def test_predictions_archived(self):
-        url = reverse('competition:predictions', kwargs={'tour_name':'archived_tourn'})
-        r_url = reverse('competition:table', kwargs={'tour_name':'archived_tourn'})
+        url = reverse('competition:predictions', kwargs={'slug':'archived_tourn'})
+        r_url = reverse('competition:table', kwargs={'slug':'archived_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, r_url)
 
     def test_table_pending(self):
-        url = reverse('competition:table', kwargs={'tour_name':'pending_tourn'})
-        r_url = reverse('competition:join', kwargs={'tour_name':'pending_tourn'})
+        url = reverse('competition:table', kwargs={'slug':'pending_tourn'})
+        r_url = reverse('competition:join', kwargs={'slug':'pending_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, r_url)
 
     def test_table_active(self):
-        url = reverse('competition:table', kwargs={'tour_name':'active_tourn'})
-        r_url = reverse('competition:join', kwargs={'tour_name':'active_tourn'})
+        url = reverse('competition:table', kwargs={'slug':'active_tourn'})
+        r_url = reverse('competition:join', kwargs={'slug':'active_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, r_url)
 
     def test_table_finished(self):
-        url = reverse('competition:table', kwargs={'tour_name':'finished_tourn'})
+        url = reverse('competition:table', kwargs={'slug':'finished_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'table.html')
 
     def test_table_archived(self):
-        url = reverse('competition:table', kwargs={'tour_name':'archived_tourn'})
+        url = reverse('competition:table', kwargs={'slug':'archived_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'table.html')
 
     def test_join_pending(self):
-        url = reverse('competition:join', kwargs={'tour_name':'pending_tourn'})
+        url = reverse('competition:join', kwargs={'slug':'pending_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'join.html')
@@ -186,11 +186,11 @@ class CompetitionViewNotParticipantTest(TestCase):
         count_after = len(Participant.objects.filter(tournament__name='pending_tourn'))
         self.assertEqual(count_after, count_before + 1)
 
-        r_url = reverse('competition:submit', kwargs={'tour_name':'pending_tourn'})
+        r_url = reverse('competition:submit', kwargs={'slug':'pending_tourn'})
         self.assertRedirects(response, r_url)
 
     def test_join_active(self):
-        url = reverse('competition:join', kwargs={'tour_name':'active_tourn'})
+        url = reverse('competition:join', kwargs={'slug':'active_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'join.html')
@@ -201,12 +201,12 @@ class CompetitionViewNotParticipantTest(TestCase):
         count_after = len(Participant.objects.filter(tournament__name='active_tourn'))
         self.assertEqual(count_after, count_before + 1)
 
-        r_url = reverse('competition:submit', kwargs={'tour_name':'active_tourn'})
+        r_url = reverse('competition:submit', kwargs={'slug':'active_tourn'})
         self.assertRedirects(response, r_url)
 
     def test_join_finished(self):
-        url = reverse('competition:join', kwargs={'tour_name':'finished_tourn'})
-        r_url = reverse('competition:table', kwargs={'tour_name':'finished_tourn'})
+        url = reverse('competition:join', kwargs={'slug':'finished_tourn'})
+        r_url = reverse('competition:table', kwargs={'slug':'finished_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, r_url)
         count_before = len(Participant.objects.filter(tournament__name='finished_tourn'))
@@ -218,8 +218,8 @@ class CompetitionViewNotParticipantTest(TestCase):
         self.assertRedirects(response, r_url)
 
     def test_join_archived(self):
-        url = reverse('competition:join', kwargs={'tour_name':'archived_tourn'})
-        r_url = reverse('competition:table', kwargs={'tour_name':'archived_tourn'})
+        url = reverse('competition:join', kwargs={'slug':'archived_tourn'})
+        r_url = reverse('competition:table', kwargs={'slug':'archived_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, r_url)
 
@@ -232,7 +232,7 @@ class CompetitionViewNotParticipantTest(TestCase):
         self.assertRedirects(response, r_url)
 
     def test_results_pending(self):
-        url = reverse('competition:results', kwargs={'tour_name':'pending_tourn'})
+        url = reverse('competition:results', kwargs={'slug':'pending_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, self.url_login_next + url)
 
@@ -245,7 +245,7 @@ class CompetitionViewNotParticipantTest(TestCase):
         self.assertTemplateUsed(response, 'match_results.html')
 
     def test_results_active(self):
-        url = reverse('competition:results', kwargs={'tour_name':'active_tourn'})
+        url = reverse('competition:results', kwargs={'slug':'active_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, self.url_login_next + url)
 
@@ -258,7 +258,7 @@ class CompetitionViewNotParticipantTest(TestCase):
         self.assertTemplateUsed(response, 'match_results.html')
 
     def test_results_finished(self):
-        url = reverse('competition:results', kwargs={'tour_name':'finished_tourn'})
+        url = reverse('competition:results', kwargs={'slug':'finished_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, self.url_login_next + url)
 
@@ -271,7 +271,7 @@ class CompetitionViewNotParticipantTest(TestCase):
         self.assertTemplateUsed(response, 'match_results.html')
 
     def test_results_archived(self):
-        url = reverse('competition:results', kwargs={'tour_name':'archived_tourn'})
+        url = reverse('competition:results', kwargs={'slug':'archived_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, self.url_login_next + url)
 
@@ -284,7 +284,7 @@ class CompetitionViewNotParticipantTest(TestCase):
         self.assertTemplateUsed(response, 'match_results.html')
 
     def test_rules_pending(self):
-        url = reverse('competition:rules', kwargs={'tour_name':'pending_tourn'})
+        url = reverse('competition:rules', kwargs={'slug':'pending_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'display_rules.html')
@@ -297,19 +297,19 @@ class CompetitionViewNotParticipantTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_rules_active(self):
-        url = reverse('competition:rules', kwargs={'tour_name':'active_tourn'})
-        r_url = reverse('competition:join', kwargs={'tour_name':'active_tourn'})
+        url = reverse('competition:rules', kwargs={'slug':'active_tourn'})
+        r_url = reverse('competition:join', kwargs={'slug':'active_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, r_url)
 
     def test_rules_finished(self):
-        url = reverse('competition:rules', kwargs={'tour_name':'finished_tourn'})
+        url = reverse('competition:rules', kwargs={'slug':'finished_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'display_rules.html')
 
     def test_rules_archived(self):
-        url = reverse('competition:rules', kwargs={'tour_name':'archived_tourn'})
+        url = reverse('competition:rules', kwargs={'slug':'archived_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'display_rules.html')
@@ -320,26 +320,26 @@ class CompetitionViewNotParticipantTest(TestCase):
 #     def test_match_archived(self):
 # 
     def test_benchmark_table_pending(self):
-        url = reverse('competition:benchmark_table', kwargs={'tour_name':'pending_tourn'})
-        r_url = reverse('competition:join', kwargs={'tour_name':'pending_tourn'})
+        url = reverse('competition:benchmark_table', kwargs={'slug':'pending_tourn'})
+        r_url = reverse('competition:join', kwargs={'slug':'pending_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, r_url)
 
     def test_benchmark_table_active(self):
-        url = reverse('competition:benchmark_table', kwargs={'tour_name':'active_tourn'})
-        r_url = reverse('competition:join', kwargs={'tour_name':'active_tourn'})
+        url = reverse('competition:benchmark_table', kwargs={'slug':'active_tourn'})
+        r_url = reverse('competition:join', kwargs={'slug':'active_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, r_url)
 
     def test_benchmark_table_finished(self):
-        url = reverse('competition:benchmark_table', kwargs={'tour_name':'finished_tourn'})
-        r_url = reverse('competition:table', kwargs={'tour_name':'finished_tourn'})
+        url = reverse('competition:benchmark_table', kwargs={'slug':'finished_tourn'})
+        r_url = reverse('competition:table', kwargs={'slug':'finished_tourn'})
         response = self.client.get(url, follow=True)
         self.assertRedirects(response, r_url)
 
     def test_benchmark_table_archived(self):
-        url = reverse('competition:benchmark_table', kwargs={'tour_name':'archived_tourn'})
-        r_url = reverse('competition:table', kwargs={'tour_name':'archived_tourn'})
+        url = reverse('competition:benchmark_table', kwargs={'slug':'archived_tourn'})
+        r_url = reverse('competition:table', kwargs={'slug':'archived_tourn'})
         response = self.client.get(url, follow=True)
         self.assertRedirects(response, r_url)
 
@@ -382,80 +382,80 @@ class CompetitionViewTest(TestCase):
         self.assertTemplateUsed(response, 'index.html')
 
     def test_submit_pending(self):
-        url = reverse('competition:submit', kwargs={'tour_name':'pending_tourn'})
+        url = reverse('competition:submit', kwargs={'slug':'pending_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'submit.html')
 
     def test_submit_active(self):
-        url = reverse('competition:submit', kwargs={'tour_name':'active_tourn'})
+        url = reverse('competition:submit', kwargs={'slug':'active_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'submit.html')
 
     def test_submit_finished(self):
-        url = reverse('competition:submit', kwargs={'tour_name':'finished_tourn'})
-        r_url = reverse('competition:table', kwargs={'tour_name':'finished_tourn'})
+        url = reverse('competition:submit', kwargs={'slug':'finished_tourn'})
+        r_url = reverse('competition:table', kwargs={'slug':'finished_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, r_url)
 
     def test_submit_archived(self):
-        url = reverse('competition:submit', kwargs={'tour_name':'archived_tourn'})
-        r_url = reverse('competition:table', kwargs={'tour_name':'archived_tourn'})
+        url = reverse('competition:submit', kwargs={'slug':'archived_tourn'})
+        r_url = reverse('competition:table', kwargs={'slug':'archived_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, r_url)
 
     def test_predictions_pending(self):
-        url = reverse('competition:predictions', kwargs={'tour_name':'pending_tourn'})
+        url = reverse('competition:predictions', kwargs={'slug':'pending_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'predictions.html')
 
     def test_predictions_active(self):
-        url = reverse('competition:predictions', kwargs={'tour_name':'active_tourn'})
+        url = reverse('competition:predictions', kwargs={'slug':'active_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'predictions.html')
 
     def test_predictions_finished(self):
-        url = reverse('competition:predictions', kwargs={'tour_name':'finished_tourn'})
+        url = reverse('competition:predictions', kwargs={'slug':'finished_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'predictions.html')
 
     def test_predictions_archived(self):
-        url = reverse('competition:predictions', kwargs={'tour_name':'archived_tourn'})
+        url = reverse('competition:predictions', kwargs={'slug':'archived_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'predictions.html')
 
     def test_table_pending(self):
-        url = reverse('competition:table', kwargs={'tour_name':'pending_tourn'})
+        url = reverse('competition:table', kwargs={'slug':'pending_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'table.html')
 
     def test_table_active(self):
-        url = reverse('competition:table', kwargs={'tour_name':'active_tourn'})
+        url = reverse('competition:table', kwargs={'slug':'active_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'table.html')
 
     def test_table_finished(self):
-        url = reverse('competition:table', kwargs={'tour_name':'finished_tourn'})
+        url = reverse('competition:table', kwargs={'slug':'finished_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'table.html')
 
     def test_table_archived(self):
-        url = reverse('competition:table', kwargs={'tour_name':'archived_tourn'})
+        url = reverse('competition:table', kwargs={'slug':'archived_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'table.html')
 
     @unittest.skip("transaction error")
     def test_join_pending(self):
-        url = reverse('competition:join', kwargs={'tour_name':'pending_tourn'})
+        url = reverse('competition:join', kwargs={'slug':'pending_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'join.html')
@@ -466,12 +466,12 @@ class CompetitionViewTest(TestCase):
         count_after = len(Participant.objects.filter(tournament__name='pending_tourn'))
         self.assertEqual(count_after, count_before)
 
-        r_url = reverse('competition:submit', kwargs={'tour_name':'pending_tourn'})
+        r_url = reverse('competition:submit', kwargs={'slug':'pending_tourn'})
         self.assertRedirects(response, r_url)
 
     @unittest.skip("transaction error")
     def test_join_active(self):
-        url = reverse('competition:join', kwargs={'tour_name':'active_tourn'})
+        url = reverse('competition:join', kwargs={'slug':'active_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'join.html')
@@ -482,12 +482,12 @@ class CompetitionViewTest(TestCase):
         count_after = len(Participant.objects.filter(tournament__name='active_tourn'))
         self.assertEqual(count_after, count_before)
 
-        r_url = reverse('competition:submit', kwargs={'tour_name':'active_tourn'})
+        r_url = reverse('competition:submit', kwargs={'slug':'active_tourn'})
         self.assertRedirects(response, r_url)
 
     def test_join_finished(self):
-        url = reverse('competition:join', kwargs={'tour_name':'finished_tourn'})
-        r_url = reverse('competition:table', kwargs={'tour_name':'finished_tourn'})
+        url = reverse('competition:join', kwargs={'slug':'finished_tourn'})
+        r_url = reverse('competition:table', kwargs={'slug':'finished_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, r_url)
         count_before = len(Participant.objects.filter(tournament__name='finished_tourn'))
@@ -499,8 +499,8 @@ class CompetitionViewTest(TestCase):
         self.assertRedirects(response, r_url)
 
     def test_join_archived(self):
-        url = reverse('competition:join', kwargs={'tour_name':'archived_tourn'})
-        r_url = reverse('competition:table', kwargs={'tour_name':'archived_tourn'})
+        url = reverse('competition:join', kwargs={'slug':'archived_tourn'})
+        r_url = reverse('competition:table', kwargs={'slug':'archived_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, r_url)
 
@@ -513,7 +513,7 @@ class CompetitionViewTest(TestCase):
         self.assertRedirects(response, r_url)
 
     def test_results_pending(self):
-        url = reverse('competition:results', kwargs={'tour_name':'pending_tourn'})
+        url = reverse('competition:results', kwargs={'slug':'pending_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, self.url_login_next + url)
 
@@ -526,7 +526,7 @@ class CompetitionViewTest(TestCase):
         self.assertTemplateUsed(response, 'match_results.html')
 
     def test_results_active(self):
-        url = reverse('competition:results', kwargs={'tour_name':'active_tourn'})
+        url = reverse('competition:results', kwargs={'slug':'active_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, self.url_login_next + url)
 
@@ -539,7 +539,7 @@ class CompetitionViewTest(TestCase):
         self.assertTemplateUsed(response, 'match_results.html')
 
     def test_results_finished(self):
-        url = reverse('competition:results', kwargs={'tour_name':'finished_tourn'})
+        url = reverse('competition:results', kwargs={'slug':'finished_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, self.url_login_next + url)
 
@@ -552,7 +552,7 @@ class CompetitionViewTest(TestCase):
         self.assertTemplateUsed(response, 'match_results.html')
 
     def test_results_archived(self):
-        url = reverse('competition:results', kwargs={'tour_name':'archived_tourn'})
+        url = reverse('competition:results', kwargs={'slug':'archived_tourn'})
         response = self.client.get(url)
         self.assertRedirects(response, self.url_login_next + url)
 
@@ -565,25 +565,25 @@ class CompetitionViewTest(TestCase):
         self.assertTemplateUsed(response, 'match_results.html')
 
     def test_rules_pending(self):
-        url = reverse('competition:rules', kwargs={'tour_name':'pending_tourn'})
+        url = reverse('competition:rules', kwargs={'slug':'pending_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'display_rules.html')
 
     def test_rules_active(self):
-        url = reverse('competition:rules', kwargs={'tour_name':'active_tourn'})
+        url = reverse('competition:rules', kwargs={'slug':'active_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'display_rules.html')
 
     def test_rules_finished(self):
-        url = reverse('competition:rules', kwargs={'tour_name':'finished_tourn'})
+        url = reverse('competition:rules', kwargs={'slug':'finished_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'display_rules.html')
 
     def test_rules_archived(self):
-        url = reverse('competition:rules', kwargs={'tour_name':'archived_tourn'})
+        url = reverse('competition:rules', kwargs={'slug':'archived_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'display_rules.html')
@@ -618,25 +618,25 @@ class CompetitionViewTest(TestCase):
 
 
     def test_benchmark_table_pending(self):
-        url = reverse('competition:benchmark_table', kwargs={'tour_name':'pending_tourn'})
+        url = reverse('competition:benchmark_table', kwargs={'slug':'pending_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'table.html')
 
     def test_benchmark_table_active(self):
-        url = reverse('competition:benchmark_table', kwargs={'tour_name':'active_tourn'})
+        url = reverse('competition:benchmark_table', kwargs={'slug':'active_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'table.html')
 
     def test_benchmark_table_finished(self):
-        url = reverse('competition:benchmark_table', kwargs={'tour_name':'finished_tourn'})
+        url = reverse('competition:benchmark_table', kwargs={'slug':'finished_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'table.html')
 
     def test_benchmark_table_archived(self):
-        url = reverse('competition:benchmark_table', kwargs={'tour_name':'archived_tourn'})
+        url = reverse('competition:benchmark_table', kwargs={'slug':'archived_tourn'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'table.html')
@@ -673,7 +673,6 @@ class CompetitionViewTest(TestCase):
 class HomePageContent(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.url = reverse('index')
         sport = Sport.objects.create(name='sport')
         tourn_a = Tournament.objects.create(name='tourn_A',
                                             sport=sport,
@@ -717,24 +716,28 @@ class HomePageContent(TestCase):
         self.assertTrue(login)
 
     def test_live_tournaments(self):
-        response = self.client.get(self.url)
+        response = self.client.get(reverse('competition:tournament_list_open'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'home.html')
+        self.assertTemplateUsed(response, 'partial/tournament_list_open.html')
 
         self.assertEqual(len(response.context['live_tournaments']), 3)
-        self.assertEqual(len(response.context['matches_today']), 0)
-        self.assertEqual(len(response.context['matches_tomorrow']), 0)
+
+    def test_closed_tournaments(self):
+        response = self.client.get(reverse('competition:tournament_list_closed'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'partial/tournament_list_closed.html')
+
+        self.assertEqual(len(response.context['closed_tournaments']), 1)
 
     def test_todays_matches(self):
         for tourn in self.tourns:
             for time in self.times_today:
                 Match.objects.create(tournament=tourn, home_team=self.team_a, away_team=self.team_b, kick_off=time)
 
-        response = self.client.get(self.url)
+        response = self.client.get(reverse('competition:match_list_todaytomorrow'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'home.html')
+        self.assertTemplateUsed(response, 'partial/match_list_todaytomorrow.html')
 
-        self.assertEqual(len(response.context['live_tournaments']), 3)
         self.assertEqual(len(response.context['matches_today']), 6)
         self.assertEqual(len(response.context['matches_tomorrow']), 0)
 
@@ -743,11 +746,10 @@ class HomePageContent(TestCase):
             for time in self.times_tomorrow:
                 Match.objects.create(tournament=tourn, home_team=self.team_a, away_team=self.team_b, kick_off=time)
 
-        response = self.client.get(self.url)
+        response = self.client.get(reverse('competition:match_list_todaytomorrow'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'home.html')
+        self.assertTemplateUsed(response, 'partial/match_list_todaytomorrow.html')
 
-        self.assertEqual(len(response.context['live_tournaments']), 3)
         self.assertEqual(len(response.context['matches_today']), 0)
         self.assertEqual(len(response.context['matches_tomorrow']), 6)
 
@@ -756,13 +758,21 @@ class HomePageContent(TestCase):
             for time in self.times_today + self.times_tomorrow:
                 Match.objects.create(tournament=tourn, home_team=self.team_a, away_team=self.team_b, kick_off=time)
 
-        response = self.client.get(self.url)
+        response = self.client.get(reverse('competition:match_list_todaytomorrow'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'home.html')
+        self.assertTemplateUsed(response, 'partial/match_list_todaytomorrow.html')
 
-        self.assertEqual(len(response.context['live_tournaments']), 3)
         self.assertEqual(len(response.context['matches_today']), 6)
         self.assertEqual(len(response.context['matches_tomorrow']), 6)
+
+    def test_no_matches_today_or_tomorrows(self):
+        response = self.client.get(reverse('competition:match_list_todaytomorrow'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'partial/match_list_todaytomorrow.html')
+
+        self.assertEqual(len(response.context['matches_today']), 0)
+        self.assertEqual(len(response.context['matches_tomorrow']), 0)
+
 
 
 class PredictionsAndMatches(TransactionTestCase):
@@ -798,16 +808,22 @@ class PredictionsAndMatches(TransactionTestCase):
         login = self.client.login(username='testuser1', password='test123')
         self.assertTrue(login)
 
-    def test_submit_post(self):
-        url = reverse('competition:submit', kwargs={'tour_name':self.tourn.name})
-        response = self.client.post(url, {
-            '1': -1,
-            '2': 2,
-            '3': -3,
-            '4': "home",
-            '6': -5,
-        })
+    def test_submit(self):
+        url = reverse('competition:submit', kwargs={'slug':self.tourn.name})
 
+        response = self.client.get(url)
+        self.assertEqual(len(response.context['fixture_list']), 3)
+        self.assertEqual(response.context['fixture_list'][0].pk, 3)
+
+        predictions = Prediction.objects.filter(user=self.user)
+        self.assertEqual(len(predictions), 0)
+                
+        response = self.client.post(
+                reverse('competition:prediction_create', kwargs={'match_pk': 3}),
+                { 'prediction_prediction': -3})
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get(url)
         self.assertEqual(len(response.context['fixture_list']), 2)
         self.assertEqual(response.context['fixture_list'][0].pk, 4)
 
@@ -821,11 +837,13 @@ class PredictionsAndMatches(TransactionTestCase):
         predictions = Prediction.objects.filter(match__pk=4, user=self.user)
         self.assertEqual(len(predictions), 0)
 
-        response = self.client.post(url, {
-            '3': 3,
-            '4': 4,
-        })
+        response = self.client.post(
+                reverse('competition:prediction_create', kwargs={'match_pk': 4}),
+                { 'prediction_prediction': 4})
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'partial/messages.html')
 
+        response = self.client.get(url)
         self.assertEqual(len(response.context['fixture_list']), 1)
 
         predictions = Prediction.objects.filter(match__pk=3, user=self.user)
@@ -836,18 +854,19 @@ class PredictionsAndMatches(TransactionTestCase):
         self.assertEqual(len(predictions), 1)
         self.assertEqual(predictions[0].prediction, 4)
 
-    def test_predictions_post(self):
-        url = reverse('competition:predictions', kwargs={'tour_name': self.tourn.name})
+    def test_predictions(self):
+        url = reverse('competition:predictions', kwargs={'slug': self.tourn.name})
 
         p1 = Prediction.objects.create(match=self.matches[0], prediction=1, user=self.user)
         p2 = Prediction.objects.create(match=self.matches[1], prediction=2, user=self.user)
         p3 = Prediction.objects.create(match=self.matches[2], prediction=3, user=self.user)
 
-        response = self.client.post(url, {
-            'prediction_id': p1.pk,
-            'prediction_prediction': -1,
+        response = self.client.post(
+                reverse('competition:prediction_update', kwargs={'prediction_pk': p1.pk}),
+                { 'prediction_prediction': -1,
         })
 
+        response = self.client.get(url)
         self.assertEqual(len(response.context['predictions']), 3)
         self.assertEqual(response.context['predictions'][0].pk, p3.pk)
         self.assertEqual(response.context['predictions'][0].match.pk, 3)
@@ -859,11 +878,12 @@ class PredictionsAndMatches(TransactionTestCase):
         self.assertEqual(response.context['predictions'][2].match.pk, 1)
         self.assertEqual(response.context['predictions'][2].prediction, 1)
 
-        response = self.client.post(url, {
-            'prediction_id': p3.pk,
-            'prediction_prediction': -1,
+        response = self.client.post(
+                reverse('competition:prediction_update', kwargs={'prediction_pk': p3.pk}),
+                { 'prediction_prediction': -1,
         })
 
+        response = self.client.get(url)
         self.assertEqual(len(response.context['predictions']), 3)
         self.assertEqual(response.context['predictions'][0].pk, p3.pk)
         self.assertEqual(response.context['predictions'][0].match.pk, 3)
@@ -875,11 +895,12 @@ class PredictionsAndMatches(TransactionTestCase):
         self.assertEqual(response.context['predictions'][2].match.pk, 1)
         self.assertEqual(response.context['predictions'][2].prediction, 1)
 
-        response = self.client.post(url, {
-            'prediction_id': 20,
-            'prediction_prediction': 5,
+        response = self.client.post(
+                reverse('competition:prediction_update', kwargs={'prediction_pk': 20}),
+                { 'prediction_prediction': 5,
         })
 
+        response = self.client.get(url)
         self.assertEqual(len(response.context['predictions']), 3)
         self.assertEqual(response.context['predictions'][0].pk, p3.pk)
         self.assertEqual(response.context['predictions'][0].match.pk, 3)
@@ -892,7 +913,7 @@ class PredictionsAndMatches(TransactionTestCase):
         self.assertEqual(response.context['predictions'][2].prediction, 1)
 
     def test_predictions_other_user(self):
-        url = reverse('competition:predictions', kwargs={'tour_name': self.tourn.name})
+        url = reverse('competition:predictions', kwargs={'slug': self.tourn.name})
 
         Prediction.objects.create(match=self.matches[0], prediction=1, user=self.user)
         Prediction.objects.create(match=self.matches[1], prediction=2, user=self.user)
@@ -950,7 +971,7 @@ class PredictionsAndMatches(TransactionTestCase):
         self.assertEqual(response.context['predictions'][2].prediction, 1)
 
     def test_results_post(self):
-        url = reverse('competition:results', kwargs={'tour_name': self.tourn.name})
+        url = reverse('competition:results', kwargs={'slug': self.tourn.name})
 
         p1 = Prediction.objects.create(match=self.matches[0], prediction=1, user=self.user)
         p2 = Prediction.objects.create(match=self.matches[1], prediction=-1, user=self.user)
@@ -1037,3 +1058,142 @@ class PredictionsAndMatches(TransactionTestCase):
         response = self.client.get(url + "?benchmarks=show")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['predictions']), 3)
+
+    def test_prediction_create(self):
+        response = self.client.post(
+                reverse('competition:prediction_create', kwargs={'match_pk': 1}),
+                { 'prediction_prediction': -1})
+        self.assertEqual(response.status_code, 404)
+
+        predictions = Prediction.objects.filter(user=self.user)
+        self.assertEqual(len(predictions), 0)
+                
+        response = self.client.post(
+                reverse('competition:prediction_create', kwargs={'match_pk': 2}),
+                { 'prediction_prediction': 2})
+        self.assertEqual(response.status_code, 404)
+
+        predictions = Prediction.objects.filter(user=self.user)
+        self.assertEqual(len(predictions), 0)
+                
+        response = self.client.post(
+                reverse('competition:prediction_create', kwargs={'match_pk': 3}),
+                { 'prediction_prediction': -3})
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'partial/messages.html')
+
+        predictions = Prediction.objects.filter(user=self.user)
+        self.assertEqual(len(predictions), 1)
+        self.assertEqual(Prediction.objects.get(match__pk=3, user=self.user).prediction, -3)
+                
+        response = self.client.post(
+                reverse('competition:prediction_create', kwargs={'match_pk': 4}),
+                { 'prediction_prediction': 'home'})
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'partial/prediction_create.html')
+        self.assertEqual(response.context['error'], True)
+        self.assertFalse('prediction' in response.context)
+        predictions = Prediction.objects.filter(user=self.user)
+        self.assertEqual(len(predictions), 1)
+        predictions = Prediction.objects.filter(match__pk=4, user=self.user)
+        self.assertEqual(len(predictions), 0)
+
+        response = self.client.post(
+                reverse('competition:prediction_create', kwargs={'match_pk': 6}),
+                { 'prediction_prediction': 5})
+        self.assertEqual(response.status_code, 404)
+
+        response = self.client.post(
+                reverse('competition:prediction_create', kwargs={'match_pk': 3}),
+                { 'prediction_prediction': 3}) # create again
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'partial/messages.html')
+
+        predictions = Prediction.objects.filter(user=self.user)
+        self.assertEqual(len(predictions), 1)
+        self.assertEqual(Prediction.objects.get(match__pk=3, user=self.user).prediction, -3)
+
+        # posts from match_view
+        response = self.client.post(
+                reverse('competition:prediction_create', kwargs={'match_pk': 4}) + '?match_view=true',
+                { 'prediction_prediction': 4})
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'partial/match_prediction_form.html')
+
+        predictions = Prediction.objects.filter(user=self.user)
+        self.assertEqual(len(predictions), 2)
+        prediction = Prediction.objects.get(match__pk=4, user=self.user)
+        self.assertEqual(prediction.prediction, 4)
+        self.assertEqual(prediction, response.context['prediction'])
+
+    def test_prediction_update(self):
+        p1 = Prediction.objects.create(match=self.matches[0], prediction=1, user=self.user)
+        p2 = Prediction.objects.create(match=self.matches[1], prediction=-1, user=self.user)
+        p3 = Prediction.objects.create(match=self.matches[2], prediction=3, user=self.user)
+        p4 = Prediction.objects.create(match=self.matches[1], prediction=5, user=self.other_user)
+
+        predictions = Prediction.objects.filter(user=self.user)
+        self.assertEqual(len(predictions), 3)
+
+        response = self.client.post(
+                reverse('competition:prediction_update', kwargs={'prediction_pk': p1.pk}),
+                { 'prediction_prediction': -1,
+        })
+        self.assertEqual(response.status_code, 404)
+        predictions = Prediction.objects.filter(user=self.user)
+        self.assertEqual(len(predictions), 3)
+        self.assertEqual(Prediction.objects.get(pk=p1.pk, user=self.user).prediction, 1)
+
+        response = self.client.post(
+                reverse('competition:prediction_update', kwargs={'prediction_pk': p3.pk}),
+                { 'prediction_prediction': -1,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'partial/prediction_update.html')
+        predictions = Prediction.objects.filter(user=self.user)
+        self.assertEqual(len(predictions), 3)
+        self.assertEqual(Prediction.objects.get(pk=p3.pk, user=self.user).prediction, -1)
+
+        response = self.client.post(
+                reverse('competition:prediction_update', kwargs={'prediction_pk': 20}),
+                { 'prediction_prediction': 5,
+        })
+        self.assertEqual(response.status_code, 404)
+        predictions = Prediction.objects.filter(user=self.user)
+        self.assertEqual(len(predictions), 3)
+
+        response = self.client.post(
+                reverse('competition:prediction_update', kwargs={'prediction_pk': p3.pk}),
+                { 'prediction_prediction': 'home',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'partial/prediction_update.html')
+        predictions = Prediction.objects.filter(user=self.user)
+        self.assertEqual(len(predictions), 3)
+        self.assertEqual(Prediction.objects.get(pk=p3.pk, user=self.user).prediction, -1)
+
+        response = self.client.post(
+                reverse('competition:prediction_update', kwargs={'prediction_pk': p4.pk}),
+                { 'prediction_prediction': 5,
+        })
+        self.assertEqual(response.status_code, 404)
+
+        # match_view post
+        response = self.client.post(
+                reverse('competition:prediction_update', kwargs={'prediction_pk': p2.pk}) + '?match_view=true',
+                { 'prediction_prediction': 5,
+        })
+        self.assertEqual(response.status_code, 404)
+        predictions = Prediction.objects.filter(user=self.user)
+        self.assertEqual(len(predictions), 3)
+
+        response = self.client.post(
+                reverse('competition:prediction_update', kwargs={'prediction_pk': p3.pk}) + '?match_view=true',
+                { 'prediction_prediction': 5,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'partial/match_prediction_form.html')
+        predictions = Prediction.objects.filter(user=self.user)
+        self.assertEqual(len(predictions), 3)
+        self.assertEqual(Prediction.objects.get(pk=p3.pk, user=self.user).prediction, 5)
+

@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.core import mail
 from django.test import TestCase
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 import unittest
 import re
 # import pdb; pdb.set_trace()
@@ -26,7 +26,6 @@ class ServerViewTest (TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.assertTemplateUsed(response, 'home.html')
-        self.assertEqual(len(response.context['live_tournaments']), 0)
 
     def test_signup_logged_out(self):
         url = reverse('account_signup')

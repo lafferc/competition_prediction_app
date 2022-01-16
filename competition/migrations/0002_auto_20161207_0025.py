@@ -19,6 +19,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='tournament',
             name='winner',
-            field=models.ForeignKey(related_name='+', blank=True, to='competition.Participant', null=True),
+            field=models.ForeignKey(related_name='+', blank=True, to='competition.Participant', null=True, on_delete=models.CASCADE),
         ),
     ]

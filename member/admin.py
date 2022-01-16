@@ -61,6 +61,7 @@ class CompetitionAdmin(admin.ModelAdmin):
         for comp in queryset:
             for i in range(10):
                 Ticket.objects.create(competition=comp)
+    add_tickets.allowed_permissions = ('add',)
 
 
 class ProfileAdmin(admin.ModelAdmin):
