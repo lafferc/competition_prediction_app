@@ -3,12 +3,7 @@ import csv
 import datetime
 import itertools
 from bs4 import BeautifulSoup
-
-if (sys.version_info > (3, 0)):
-    # Python 3
-    from urllib.request import urlopen
-else:
-    from urllib2 import urlopen
+from urllib.request import urlopen
 
 match_by_str = {}
 match_by_id = {}
