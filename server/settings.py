@@ -171,6 +171,9 @@ LOGGING = {
         'member': {
             'handlers': ['console', 'file'],
         },
+        'server': {
+            'handlers': ['console', 'file'],
+        },
     },
 }
 
