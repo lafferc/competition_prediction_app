@@ -171,6 +171,9 @@ LOGGING = {
         'member': {
             'handlers': ['console', 'file'],
         },
+        'server': {
+            'handlers': ['console', 'file'],
+        },
     },
 }
 
@@ -188,6 +191,8 @@ else: # !DEBUG
     EMAIL_PORT = 587
     EMAIL_HOST_USER = os.getenv('DJANGO_EMAIL_USER', None)
     EMAIL_HOST_PASSWORD = os.getenv('DJANGO_EMAIL_PASS', None)
+    DEFAULT_FROM_EMAIL = os.getenv('DJANGO_EMAIL_USER', None)
+    SERVER_EMAIL = os.getenv('DJANGO_EMAIL_USER', None)
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

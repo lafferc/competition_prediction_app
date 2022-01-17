@@ -1,23 +1,26 @@
 {% extends "competition_base.html" %}
 
+{% load humanize %}
 {% block content %}
 {% if competitions %}
     <select onchange="location = this.options[this.selectedIndex].value;">
     {% for competition in competitions %}
-        <option value="{% url 'competition:org_table' TOURNAMENT competition %}">{{ competition }}</option>
+        <option value="{% url 'competition:org_table' TOURNAMENT.slug competition %}">{{ competition }}</option>
     {% endfor %}
-        <option value="{% url 'competition:table' TOURNAMENT %}">Back to main leaderboard</option>
+        <option value="{% url 'competition:table' TOURNAMENT.slug %}">Back to main leaderboard</option>
     </select> 
 {% endif %}
     <table>
         <tr>
+            <th>Pos</th>
             <th title="To view another user's predictions click on their name">User</th>
             <th title="The user with the lowest score is winning">Score</th>
             <th title='The "average margin" is the average difference between the predicted margin and actual margin. This does not include bonuses.'>Average margin</th>
         </tr>
 {% for participant in  participants %}
         <tr>
-            <td><a href="{% url 'competition:predictions' TOURNAMENT %}?user={{participant.user.username}}">{{ participant.get_name }}</a></td>
+            <td>{{ forloop.counter0 | add:participants.start_index | ordinal }}</td>
+            <td><a href="{{ participant.get_url }}">{{ participant.get_name }}</a></td>
             <td>{{ participant.score }}</td>
             <td>{{ participant.margin_per_match }}</td>
         </tr>
