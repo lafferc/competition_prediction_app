@@ -18,7 +18,8 @@ class SignUpForm(account.forms.SignupForm):
     def clean(self):
         super(SignUpForm, self).clean()
 
-        if (self.cleaned_data['first_name'] and self.cleaned_data['last_name'] 
+        if (not self.errors and
+            self.cleaned_data['first_name'] and self.cleaned_data['last_name']
             and self.cleaned_data['first_name'] == self.cleaned_data['last_name']
             and self.cleaned_data['first_name'][:-2] == self.cleaned_data['username']):
                 g_logger.error("Bot detected: username: '{username}', first: '{first_name}', last: '{last_name}', email: '{email}'".format(**self.cleaned_data))
