@@ -1,0 +1,19 @@
+{% extends "admin/top10.html" %}
+
+{% load humanize %}
+
+{% block top10display %}
+    <p>
+    {% for p in top_10 %}
+        {% ifchanged p.score__sum %}
+        <br>{{ forloop.counter | ordinal }}:
+        {% else %}
+    ,
+        {% endifchanged %}
+        {% if p.user.profile.get_social_name != p.social_name %} @{% endif %}{{ p.social_name }}
+        ({{ p.score__sum|floatformat:2 }})
+    {% endfor %}
+    </p>
+{% endblock %}
+
+

@@ -1,5 +1,6 @@
 {% extends "admin/base_site.html" %}
 
+{% load humanize %}
 {% block content %}
 
 <h1> Showing Top 10 for the following matches </h1>
@@ -11,21 +12,37 @@
     <input type="hidden" name="_selected_action" value="{{ match.pk }}" />
     {% endfor %}
 </ul>
-
-<h2> The Top 10 </h2>
-<ul>
-    <li>
-        <h3>user.pk | username | pos | social name | score | avg </h3>
-    </li>
-    {% for p in top_10 %}
-    <li> {{p.user.pk}} | {{ p.user }} | {{p.pos}} | {{p.social_name}}
-        | {{ p.score__sum }} | {{ p.margin__avg|floatformat:2 }}</li>
-    {% endfor %}
-</ul>
-
    {{ form.as_p }}
 
    <input type="hidden" name="action" value="{{action}}"/>
    <input type="submit" name="apply" value="{{action}}"/>
+</form>
+
+
+<h2> The Top 10 </h2>
+    {% block top10display %}
+<table>
+    <tr>
+        <th>Pos</th>
+        <th>username</th>
+        <th>social name</th>
+        <th>score</th>
+        <th>avg</th>
+    </tr>
+    {% for p in top_10 %}
+    <tr>
+        <td>
+        {% ifchanged p.score__sum %}
+            {{ forloop.counter | ordinal }}
+        {% endifchanged %}
+        </td>
+        <td>{{ p.user }}</td>
+        <td>{{ p.social_name }}</td>
+        <td>{{ p.score__sum|floatformat:2 }}</td>
+        <td>{{ p.margin__avg|floatformat:2 }}</td>
+    </tr>
+    {% endfor %}
+</table>
+    {% endblock %}
 
 {% endblock %}
