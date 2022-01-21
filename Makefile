@@ -7,9 +7,10 @@ install:
 	pip3 install -r requirements.txt
 	mkdir $(target_dir)
 	mkdir $(media_dir)
-	rsync -rv --exclude=".*" . $(target_dir)
+	rsync -rv --exclude=".*" --exclude="config.db" . $(target_dir)
 	$(target_dir)/manage.py collectstatic
 	$(target_dir)/manage.py migrate
+	$(target_dir)/manage.py createsuperuser
 	chown -R apache:apache $(target_dir)
 	chown -R apache:apache $(media_dir)
 	cp gamlaffo.conf /etc/httpd/conf.d/
@@ -19,7 +20,7 @@ update:
 	echo "Upgrading to " `cat VERSION`
 	service httpd stop
 	pip3 install -r requirements.txt
-	rsync -rv --exclude=".*" . $(target_dir)
+	rsync -rv --exclude=".*" --exclude="config.db" . $(target_dir)
 	$(target_dir)/manage.py collectstatic --noinput
 	cd $(target_dir); ./manage.py migrate; chown apache:apache *
 	service httpd start
