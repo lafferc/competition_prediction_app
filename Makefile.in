@@ -1,9 +1,9 @@
-target_dir = /var/www/html/gamlaffo/
-media_dir = /var/www/media/
+target_dir = @target_dir@
+media_dir = @media_dir@
 
 install:
 	echo "Installing " `cat VERSION`
-	service httpd stop
+	service @webserver@ stop
 	pip3 install -r requirements.txt
 	mkdir $(target_dir)
 	mkdir $(media_dir)
@@ -11,19 +11,19 @@ install:
 	$(target_dir)/manage.py collectstatic
 	$(target_dir)/manage.py migrate
 	$(target_dir)/manage.py createsuperuser
-	chown -R apache:apache $(target_dir)
-	chown -R apache:apache $(media_dir)
-	cp gamlaffo.conf /etc/httpd/conf.d/
-	service httpd start
+	chown -R @webuser@:@webuser@ $(target_dir)
+	chown -R @webuser@:@webuser@ $(media_dir)
+	cp gamlaffo.conf @webdir@
+	service @webserver@ start
 
 update:
 	echo "Upgrading to " `cat VERSION`
-	service httpd stop
+	service @webserver@ stop
 	pip3 install -r requirements.txt
 	rsync -rv --exclude=".*" --exclude="config.db" . $(target_dir)
 	$(target_dir)/manage.py collectstatic --noinput
-	cd $(target_dir); ./manage.py migrate; chown apache:apache *
-	service httpd start
+	cd $(target_dir); ./manage.py migrate; chown @webuser@:@webuser@ *
+	service @webserver@ start
 
 dev:
 	echo "Installing dev env"
