@@ -15,6 +15,7 @@ import csv
 import datetime
 import random
 from decimal import Decimal
+import statistics
 
 g_logger = logging.getLogger(__name__)
 
@@ -513,11 +514,13 @@ class Benchmark(Predictor):
     STATIC = 0
     MEAN = 1
     RANDOM = 2
+    MEDIAN = 3
 
     name = models.CharField(max_length=50)
     prediction_algorithm = models.IntegerField(choices=(
         (STATIC, "Fixed value"),
-        (MEAN, "Average"),
+        (MEAN, "Average (mean)"),
+        (MEDIAN, "Median"),
         (RANDOM, "Random range")))
     static_value = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
     range_start = models.IntegerField(blank=True, null=True)
@@ -528,6 +531,8 @@ class Benchmark(Predictor):
             return "%s STATIC(%d) %s" % (self.tournament, self.static_value, self.name)
         elif self.prediction_algorithm == self.MEAN:
             return "%s MEAN %s" % (self.tournament, self.name)
+        elif self.prediction_algorithm == self.MEDIAN:
+            return "%s MEDIAN %s" % (self.tournament, self.name)
         elif self.prediction_algorithm == self.RANDOM:
             return "%s RANDOM(%d, %d) %s" % (self.tournament, self.range_start,
                                              self.range_end, self.name)
@@ -538,7 +543,7 @@ class Benchmark(Predictor):
 
         if self.prediction_algorithm == self.STATIC:
             self.clean_static()
-        elif self.prediction_algorithm == self.MEAN:
+        elif self.prediction_algorithm in [self.MEAN, self.MEDIAN]:
             self.clean_mean()
         elif self.prediction_algorithm == self.RANDOM:
             self.clean_random()
@@ -583,6 +588,10 @@ class Benchmark(Predictor):
                 prediction.prediction = 0
         elif self.prediction_algorithm == self.RANDOM:
             prediction.prediction = random.randint(self.range_start, self.range_end)
+        elif self.prediction_algorithm == self.MEDIAN:
+            results = Prediction.objects.filter(match=match, late=False).values_list('prediction', flat=True)
+            median = statistics.median(results)
+            prediction.prediction = median
 
         return prediction
 
