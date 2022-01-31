@@ -11,6 +11,8 @@ from .models import Sport, Tournament, Participant
 from .models import Benchmark, Team, Match, Prediction
 
 class CompetitionViewLoggedOutTest(TestCase):
+    fixtures = ['social.json']
+
     @classmethod
     def setUpTestData(cls):
         cls.url_login_next = reverse('account_login') + "?next="
@@ -67,6 +69,8 @@ class CompetitionViewLoggedOutTest(TestCase):
 
 
 class CompetitionViewNotParticipantTest(TestCase):
+    fixtures = ['social.json']
+
     @classmethod
     def setUpTestData(cls):
         #print("setUpTestData: Run once to set up non-modified data for all class methods.")
@@ -345,6 +349,7 @@ class CompetitionViewNotParticipantTest(TestCase):
 
 
 class CompetitionViewTest(TestCase):
+    fixtures = ['social.json']
 
     @classmethod
     def setUpTestData(cls):
@@ -671,6 +676,8 @@ class CompetitionViewTest(TestCase):
 
 
 class HomePageContent(TestCase):
+    fixtures = ['social.json']
+
     @classmethod
     def setUpTestData(cls):
         sport = Sport.objects.create(name='sport')
@@ -776,6 +783,8 @@ class HomePageContent(TestCase):
 
 
 class PredictionsAndMatches(TransactionTestCase):
+    fixtures = ['social.json']
+
     def setUp(self):
         self.user = User.objects.create_user(username='testuser1', password='test123')
         self.user.save()

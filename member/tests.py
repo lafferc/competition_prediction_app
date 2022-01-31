@@ -11,6 +11,7 @@ from competition.models import Tournament, Sport, Participant
 
 
 class MemberViewLoggedOutTest(TestCase):
+
     @classmethod
     def setUpTestData(cls):
         cls.url_login_next = reverse('account_login') + "?next="
@@ -37,6 +38,8 @@ class MemberViewLoggedOutTest(TestCase):
 
 
 class MemberViewTest(TestCase):
+    fixtures = ['social.json']
+
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user(username='testuser1', password='test123')
@@ -183,6 +186,8 @@ class MemberViewTest(TestCase):
         self.assertTemplateUsed(response, 'tickets.html')
 
 class AnnouncementTest(TestCase):
+    fixtures = ['social.json']
+
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user(username='testuser1', password='test123', email='testuser1@example.com')
