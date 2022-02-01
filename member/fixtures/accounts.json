@@ -37,6 +37,8 @@
             "username": "testuser1",
             "email": "testuser1@example.com",
             "is_active": true,
+            "is_superuser": true,
+            "is_staff": true,
             "groups": [],
             "user_permissions": []
         }

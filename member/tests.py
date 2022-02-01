@@ -187,24 +187,26 @@ class MemberViewTest(TestCase):
         self.assertTemplateUsed(response, 'tickets.html')
 
 class AnnouncementTest(TestCase):
-    fixtures = ['social.json', 'accounts.json']
+    fixtures = ['social.json', 'accounts.json', 'tourns.json']
 
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.get(username='testuser1')
         cls.user.set_password("test123")
-        cls.user.is_superuser = True
         cls.user.save()
 
         user = User.objects.get(username='cant-receive-emails')
         user.profile.can_receive_emails = False
         user.profile.save()
 
+        user = User.objects.get(username='no-open-emails')
+        user.profile.email_on_new_competition = False
+        user.profile.save()
+
         cls.url = reverse('member:announcement')
 
     def setUp(self):
-        login = self.client.login(username='testuser1', password='test123')
-        self.assertTrue(login)
+        self.client.force_login(self.user)
 
     def test_announcement_test_email(self):
         response = self.client.post(self.url, {
@@ -244,8 +246,7 @@ class AnnouncementTest(TestCase):
         self.assertTrue("test email body" in email.body)
 
     def test_announcement_email_tourn(self):
-        sport = Sport.objects.create(name='sport')
-        tourn = Tournament.objects.create(name='active_tourn', sport=sport, state=Tournament.ACTIVE)
+        tourn = Tournament.objects.get(name='active_tourn')
 
         excluded_users = ['blankemail', 'unverified', 'inactive']
         for user in User.objects.exclude(username__in=excluded_users):
@@ -269,3 +270,52 @@ class AnnouncementTest(TestCase):
         email = mail.outbox[0]
         self.assertEqual(email.subject, "Test subject")
         self.assertTrue("test email body" in email.body)
+
+    def test_open_tourn_email(self):
+        tourn = Tournament.objects.get(name='pending_tourn')
+
+        excluded_users = ['blankemail', 'unverified', 'cant-receive-emails', 'inactive', 'no-open-emails']
+        expected_emails = User.objects.exclude(username__in=excluded_users).values_list('email', flat=True)
+
+        url = reverse('admin:competition_tournament_changelist')
+        response = self.client.post(url, {
+            'action': 'open_tournament',
+            '_selected_action': [tourn.pk],
+            })
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, url)
+
+        self.assertEqual(len(mail.outbox), len(expected_emails))
+        self.assertEqual(set([e.to[0] for e in mail.outbox]), set(expected_emails))
+        email = mail.outbox[0]
+
+        self.assertEqual(email.subject, "A new competition has started")
+
+        self.assertTrue(tourn.name in email.body)
+        url = reverse('competition:join', kwargs={'slug': tourn.slug})
+        self.assertTrue(url in email.body)
+
+    def test_close_tourn_email(self):
+        tourn = Tournament.objects.get(name='active_tourn')
+
+        excluded_users = ['blankemail', 'unverified', 'inactive']
+        for user in User.objects.exclude(username__in=excluded_users):
+            Participant.objects.create(user=user, tournament=tourn, score=user.pk*1.33)
+
+        expected_emails = tourn.participants.exclude(username__in=['cant-receive-emails']).values_list('email', flat=True)
+
+
+        url = reverse('admin:competition_tournament_changelist')
+        response = self.client.post(url, {
+            'action': 'close_tournament',
+            '_selected_action': [tourn.pk],
+            })
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, url)
+
+        self.assertEqual(len(mail.outbox), len(expected_emails))
+        self.assertEqual(set([e.to[0] for e in mail.outbox]), set(expected_emails))
+        email = mail.outbox[0]
+
+        self.assertEqual(email.subject, f"Thank you for participating in {tourn.name}")
+

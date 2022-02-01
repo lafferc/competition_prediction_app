@@ -1,0 +1,28 @@
+[
+    {
+        "model": "competition.sport",
+        "pk": 1,
+        "fields": {
+            "name": "sport"
+        }
+    },
+    {
+        "model": "competition.tournament",
+        "fields": {
+            "name": "pending_tourn",
+            "slug": "pending_tourn",
+            "sport": 1,
+            "state": 0
+        }
+    },
+    {
+        "model": "competition.tournament",
+        "fields": {
+            "name": "active_tourn",
+            "slug": "active_tourn",
+            "sport": 1,
+            "state": 1
+        }
+    }
+]
+
