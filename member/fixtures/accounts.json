@@ -1,0 +1,173 @@
+[
+    {
+        "model": "auth.user",
+        "pk": 1,
+        "fields": {
+            "username": "blankemail",
+            "email": "",
+            "is_active": true,
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 2,
+        "fields": {
+            "username": "unverified",
+            "email": "unverified@example.com",
+            "is_active": true,
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "account.emailaddress",
+        "fields": {
+            "user": 2,
+            "email": "unverified@example.com",
+            "verified": false,
+            "primary": true
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 3,
+        "fields": {
+            "username": "testuser1",
+            "email": "testuser1@example.com",
+            "is_active": true,
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "account.emailaddress",
+        "fields": {
+            "user": 3,
+            "email": "testuser1@example.com",
+            "verified": true,
+            "primary": true
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 4,
+        "fields": {
+            "username": "user0",
+            "email": "user0@example.com",
+            "is_active": true,
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "account.emailaddress",
+        "fields": {
+            "user": 4,
+            "email": "user0@example.com",
+            "verified": true,
+            "primary": true
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 5,
+        "fields": {
+            "username": "user1",
+            "email": "user1@example.com",
+            "is_active": true,
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "account.emailaddress",
+        "fields": {
+            "user": 5,
+            "email": "user1@example.com",
+            "verified": true,
+            "primary": true
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 6,
+        "fields": {
+            "username": "user2",
+            "email": "user2@example.com",
+            "is_active": true,
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "account.emailaddress",
+        "fields": {
+            "user": 6,
+            "email": "user2@example.com",
+            "verified": true,
+            "primary": true
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 7,
+        "fields": {
+            "username": "cant-receive-emails",
+            "email": "user3@example.com",
+            "is_active": true,
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "account.emailaddress",
+        "fields": {
+            "user": 7,
+            "email": "user3@example.com",
+            "verified": true,
+            "primary": true
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 8,
+        "fields": {
+            "username": "no-open-emails",
+            "email": "user4@example.com",
+            "is_active": true,
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "account.emailaddress",
+        "fields": {
+            "user": 8,
+            "email": "user4@example.com",
+            "verified": true,
+            "primary": true
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 9,
+        "fields": {
+            "username": "inactive",
+            "email": "user5@example.com",
+            "is_active": false,
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "account.emailaddress",
+        "fields": {
+            "user": 9,
+            "email": "user5@example.com",
+            "verified": true,
+            "primary": true
+        }
+    }
+]

@@ -11,6 +11,7 @@ from competition.models import Tournament, Sport, Participant
 
 
 class MemberViewLoggedOutTest(TestCase):
+    fixtures = ['social.json']
 
     @classmethod
     def setUpTestData(cls):
@@ -186,23 +187,18 @@ class MemberViewTest(TestCase):
         self.assertTemplateUsed(response, 'tickets.html')
 
 class AnnouncementTest(TestCase):
-    fixtures = ['social.json']
+    fixtures = ['social.json', 'accounts.json']
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser1', password='test123', email='testuser1@example.com')
+        cls.user = User.objects.get(username='testuser1')
+        cls.user.set_password("test123")
         cls.user.is_superuser = True
         cls.user.save()
 
-        cls.other_users = []
-        user = User.objects.create_user(username='noemail', password='test123')
-        user.save()
-        cls.other_users.append(user)
-
-        for i in range(3):
-            user = User.objects.create_user(username='user%d' % i, password='test123', email='user%d@example.com' % i)
-            user.save()
-            cls.other_users.append(user)
+        user = User.objects.get(username='cant-receive-emails')
+        user.profile.can_receive_emails = False
+        user.profile.save()
 
         cls.url = reverse('member:announcement')
 
@@ -228,7 +224,8 @@ class AnnouncementTest(TestCase):
         self.assertTrue("test email body" in email.body)
 
     def test_announcement_email(self):
-        expected_emails = User.objects.exclude(email__exact='').values_list('email', flat=True)
+        excluded_users = ['blankemail', 'unverified', 'cant-receive-emails', 'inactive']
+        expected_emails = User.objects.exclude(username__in=excluded_users).values_list('email', flat=True)
 
         response = self.client.post(self.url, {
             'subject': "Test subject",
@@ -250,11 +247,12 @@ class AnnouncementTest(TestCase):
         sport = Sport.objects.create(name='sport')
         tourn = Tournament.objects.create(name='active_tourn', sport=sport, state=Tournament.ACTIVE)
 
-        for user in self.other_users[2:]:
+        excluded_users = ['blankemail', 'unverified', 'inactive']
+        for user in User.objects.exclude(username__in=excluded_users):
             Participant.objects.create(user=user, tournament=tourn)
 
-        expected_emails = tourn.participants.values_list('email', flat=True)
-        
+        expected_emails = tourn.participants.exclude(username__in=['cant-receive-emails']).values_list('email', flat=True)
+
         response = self.client.post(self.url, {
             'subject': "Test subject",
             'message': "test email body",
