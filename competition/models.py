@@ -101,6 +101,7 @@ class Tournament(models.Model):
             null=True,
             blank=True)
     slug = models.SlugField(unique=True)
+    additional_rules = models.TextField(null=True, blank=True)
 
     def get_absolute_url(self):
         return reverse('competition:submit', kwargs={'slug': self.slug})

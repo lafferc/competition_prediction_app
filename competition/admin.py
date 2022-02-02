@@ -58,7 +58,8 @@ class TournamentAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': ('name', 'slug', 'sport', 'state', 'bonus', 'draw_bonus', 'year',
-                       'winner', 'add_matches', 'test_features_enabled', 'draw_definition')
+                       'winner', 'add_matches', 'test_features_enabled', 'draw_definition',
+                       'additional_rules')
         }),
     )
     prepopulated_fields = {"slug": ("name",)}
@@ -74,7 +75,7 @@ class TournamentAdmin(admin.ModelAdmin):
             if not obj or obj.state not in [Tournament.FINISHED, Tournament.ARCHIVED]:
                 return self.fieldsets
         return ((None, {'fields': ('name', 'slug', 'sport', 'state', 'bonus', 'draw_bonus',
-                                   'year', 'winner', 'draw_definition')}),)
+                                   'year', 'winner', 'draw_definition', 'additional_rules')}),)
 
     def participant_count(self, obj):
         return obj.participant_set.count()
