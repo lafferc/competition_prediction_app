@@ -212,6 +212,7 @@ AUTHENTICATION_BACKENDS = (
 
 SITE_ID = 1
 
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 with open(os.path.join(BASE_DIR, "VERSION")) as v_file:
