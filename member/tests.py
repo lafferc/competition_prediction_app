@@ -317,5 +317,5 @@ class AnnouncementTest(TestCase):
         self.assertEqual(set([e.to[0] for e in mail.outbox]), set(expected_emails))
         email = mail.outbox[0]
 
-        self.assertEqual(email.subject, f"Thank you for participating in {tourn.name}")
+        self.assertEqual(email.subject, "Thank you for participating in %s" % tourn.name)
 
