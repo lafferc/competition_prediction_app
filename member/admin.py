@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 from django.shortcuts import render
 from allauth.socialaccount.models import SocialApp
 from member.models import Profile, Organisation, Competition, Ticket
@@ -41,9 +42,20 @@ class CompetitionAdmin(admin.ModelAdmin):
     actions = ["add_tickets"]
     list_display = ('organisation', 'tournament', 'participant_count')
     fields = ('organisation', 'tournament', 'token_len')
+    list_filter = [
+            ('organisation', admin.RelatedOnlyFieldListFilter),
+            ('tournament', admin.RelatedOnlyFieldListFilter),
+            ]
+
+    def get_queryset(self, request):
+        from django.db.models import Count
+        qs = super().get_queryset(request)
+        qs = qs.annotate(Count('participants'))
+        return qs
 
     def participant_count(self, obj):
-        return obj.participants.count()
+        return obj.participants__count
+    participant_count.admin_order_field = 'participants__count'
 
     def get_readonly_fields(self, request, obj):
         return obj and ('organisation', 'tournament') or []
@@ -67,10 +79,14 @@ class CompetitionAdmin(admin.ModelAdmin):
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'user__id', 'test_features_enabled')
     actions = ["display_social_names"]
+    list_filter = ["user__last_login"]
 
     def user__id(self, obj):
         return obj.user.id
     user__id.admin_order_field = 'user__id'
+
+    def get_search_fields(self, request):
+        return ['user__' + f for f in UserAdmin.search_fields]
 
     def display_social_names(self, request, queryset):
         info = {}

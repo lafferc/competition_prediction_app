@@ -8,16 +8,13 @@ import logging
 g_logger = logging.getLogger(__name__)
 
 
-class TeamAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code')
-    list_filter = (
-        ('sport', admin.RelatedOnlyFieldListFilter),
-    )
+class TeamInline(admin.TabularInline):
+    model = Team
+    extra = 0
 
-    def get_readonly_fields(self, request, obj):
-        if obj:
-            return ('sport',)
-        return ()
+
+class SportAdmin(admin.ModelAdmin):
+    inlines = (TeamInline,)
 
 
 class ParticipantInline(admin.TabularInline):
@@ -77,8 +74,15 @@ class TournamentAdmin(admin.ModelAdmin):
         return ((None, {'fields': ('name', 'slug', 'sport', 'state', 'bonus', 'draw_bonus',
                                    'year', 'winner', 'draw_definition', 'additional_rules')}),)
 
+    def get_queryset(self, request):
+        from django.db.models import Count
+        qs = super().get_queryset(request)
+        qs = qs.annotate(Count('participants'))
+        return qs
+
     def participant_count(self, obj):
-        return obj.participant_set.count()
+        return obj.participants__count
+    participant_count.admin_order_field = 'participants__count'
 
     def match_count(self, obj):
         return obj.match_set.count()
@@ -111,10 +115,12 @@ class TournamentAdmin(admin.ModelAdmin):
 
 class MatchAdmin(admin.ModelAdmin):
     list_display = ('match_id', 'home_team', 'away_team', 'kick_off', 'postponed', 'score')
-    list_filter = (
+    list_filter = [
         "postponed",
+        'kick_off',
+        ('tournament__sport', admin.RelatedOnlyFieldListFilter),
         ('tournament', admin.RelatedOnlyFieldListFilter),
-    )
+    ]
     actions = ['calc_match_result', 'postpone', 'show_top_ten', 'swap_home_and_away']
     fieldsets = (
         (None, {
@@ -122,6 +128,7 @@ class MatchAdmin(admin.ModelAdmin):
                        'away_team', 'away_team_winner_of', 'kick_off', 'postponed', 'score')
         }),
     )
+    search_fields = ['home_team__name', 'away_team__name']
 
     def get_readonly_fields(self, request, obj):
         if not obj:
@@ -280,8 +287,7 @@ class BenchmarkAdmin(admin.ModelAdmin):
                 'range_end', 'score', 'margin_per_match')}),)
 
 
-admin.site.register(Sport)
-admin.site.register(Team, TeamAdmin)
+admin.site.register(Sport, SportAdmin)
 admin.site.register(Tournament, TournamentAdmin)
 admin.site.register(Match, MatchAdmin)
 admin.site.register(Prediction, PredictionAdmin)
