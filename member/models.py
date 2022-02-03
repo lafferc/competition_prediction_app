@@ -9,6 +9,7 @@ import string
 import random
 from competition.models import Tournament, Participant
 from allauth.socialaccount.models import SocialAccount
+from allauth.account.admin import EmailAddress
 
 g_logger = logging.getLogger(__name__)
 
@@ -82,11 +83,14 @@ class Profile(models.Model):
 
     def email_user(self, subject, message, new_comp=False, connection=None):
         if not self.user.email:
-            g_logger.warning("User %s doesn't have a valid email" % self.get_name())
+            return False
+        if not self.user.is_active:
             return False
         if not self.can_receive_emails:
             return False
         if new_comp and not self.email_on_new_competition:
+            return False
+        if not EmailAddress.objects.filter(user=self.user, primary=True, verified=True).exists():
             return False
         try:
             if connection is None:

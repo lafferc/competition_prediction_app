@@ -189,5 +189,8 @@
     <p>If a match has extra/additional time, the match is considered a draw
     after all extra/additional time has been played. Shootouts are not counted.</p>
 {% endif %}
+{% if TOURNAMENT.additional_rules %}
+    {{ TOURNAMENT.additional_rules|linebreaks }}
+{% endif %}
 
 
