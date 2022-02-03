@@ -2,10 +2,12 @@ from django.contrib.auth.models import User, Permission
 from django.test import TestCase, TransactionTestCase
 from django.urls import reverse
 from django.utils import timezone
+from django.db.models.signals import pre_save
 
 import datetime
 import pytz
 import unittest
+from decimal import Decimal
 
 from .models import Sport, Tournament, Participant
 from .models import Benchmark, Team, Match, Prediction
@@ -826,7 +828,7 @@ class PredictionsAndMatches(TransactionTestCase):
 
         predictions = Prediction.objects.filter(user=self.user)
         self.assertEqual(len(predictions), 0)
-                
+
         response = self.client.post(
                 reverse('competition:prediction_create', kwargs={'match_pk': 3}),
                 { 'prediction_prediction': -3})
@@ -1076,7 +1078,7 @@ class PredictionsAndMatches(TransactionTestCase):
 
         predictions = Prediction.objects.filter(user=self.user)
         self.assertEqual(len(predictions), 0)
-                
+
         response = self.client.post(
                 reverse('competition:prediction_create', kwargs={'match_pk': 2}),
                 { 'prediction_prediction': 2})
@@ -1084,7 +1086,7 @@ class PredictionsAndMatches(TransactionTestCase):
 
         predictions = Prediction.objects.filter(user=self.user)
         self.assertEqual(len(predictions), 0)
-                
+
         response = self.client.post(
                 reverse('competition:prediction_create', kwargs={'match_pk': 3}),
                 { 'prediction_prediction': -3})
@@ -1094,7 +1096,7 @@ class PredictionsAndMatches(TransactionTestCase):
         predictions = Prediction.objects.filter(user=self.user)
         self.assertEqual(len(predictions), 1)
         self.assertEqual(Prediction.objects.get(match__pk=3, user=self.user).prediction, -3)
-                
+
         response = self.client.post(
                 reverse('competition:prediction_create', kwargs={'match_pk': 4}),
                 { 'prediction_prediction': 'home'})
@@ -1205,4 +1207,55 @@ class PredictionsAndMatches(TransactionTestCase):
         predictions = Prediction.objects.filter(user=self.user)
         self.assertEqual(len(predictions), 3)
         self.assertEqual(Prediction.objects.get(pk=p3.pk, user=self.user).prediction, 5)
+
+
+def pre_save_for_prediction_fixture(sender, instance, **kwargs):
+    if kwargs['raw']:
+        instance.entered = timezone.now()
+pre_save.connect(pre_save_for_prediction_fixture, sender=Prediction)
+
+class BenchmarkAlgorithms(TestCase):
+    fixtures = [
+            'social.json',
+            'accounts.json',
+            'predictions.json'
+            ]
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.tourn = Tournament.objects.get(name='active_tourn')
+
+    def test_mean(self):
+        bm = Benchmark.objects.create(tournament=self.tourn, name="mean", prediction_algorithm=Benchmark.MEAN)
+
+        expected_results = [
+                # (match.pk, result),
+                (1, 0),
+                # (2, Decimal(0.6)),   '0.599999999999999977795'
+                (3, 1.25),
+                (4, 0),
+                ]
+
+        for pk, expected in expected_results:
+            match = Match.objects.get(pk=pk)
+
+            p = bm.predict(match)
+            self.assertEqual(p.prediction, expected)
+
+    def test_median(self):
+        bm = Benchmark.objects.create(tournament=self.tourn, name="median", prediction_algorithm=Benchmark.MEDIAN)
+
+        expected_results = [
+                # (match.pk, result),
+                (1, 0),
+                (2, 1),
+                (3, 1.5),
+                (4, 1.5),
+                ]
+
+        for pk, expected in expected_results:
+            match = Match.objects.get(pk=pk)
+
+            p = bm.predict(match)
+            self.assertEqual(p.prediction, expected)
 
