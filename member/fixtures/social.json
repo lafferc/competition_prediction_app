@@ -1,0 +1,23 @@
+[
+   {
+      "model":"socialaccount.socialapp",
+      "pk":1,
+      "fields":{
+         "id":"1",
+         "provider":"facebook",
+         "name":"facebook",
+         "client_id":"0011223344556677",
+         "secret":"012345678901234567890123456",
+         "key":""
+      }
+   },
+   {
+      "model":"socialaccount.socialapp_sites",
+      "pk":1,
+      "fields":{
+         "id":1,
+         "socialapp_id":1,
+         "site_id":1
+      }
+   }
+]

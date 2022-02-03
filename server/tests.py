@@ -7,6 +7,7 @@ import re
 # import pdb; pdb.set_trace()
 
 class ServerViewTest (TestCase):
+    fixtures = ['social.json']
 
     @classmethod
     def setUpTestData(cls):
@@ -63,6 +64,7 @@ class ServerViewTest (TestCase):
 
 
 class SignupTest(TestCase):
+    fixtures = ['social.json']
 
     @classmethod
     def setUpTestData(cls):

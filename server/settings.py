@@ -50,7 +50,7 @@ INSTALLED_APPS = (
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.twitter',
-    # 'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.facebook',
     'allauth.socialaccount.providers.reddit',
 )
 
@@ -212,6 +212,7 @@ AUTHENTICATION_BACKENDS = (
 
 SITE_ID = 1
 
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 with open(os.path.join(BASE_DIR, "VERSION")) as v_file:
