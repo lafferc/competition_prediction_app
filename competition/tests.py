@@ -8,6 +8,7 @@ import datetime
 import pytz
 import unittest
 from decimal import Decimal
+import string
 
 from .models import Sport, Tournament, Participant
 from .models import Benchmark, Team, Match, Prediction
@@ -1214,10 +1215,12 @@ def pre_save_for_prediction_fixture(sender, instance, **kwargs):
         instance.entered = timezone.now()
 pre_save.connect(pre_save_for_prediction_fixture, sender=Prediction)
 
+
 class BenchmarkAlgorithms(TestCase):
     fixtures = [
             'social.json',
             'accounts.json',
+            'teams.json',
             'predictions.json'
             ]
 
@@ -1259,3 +1262,136 @@ class BenchmarkAlgorithms(TestCase):
             p = bm.predict(match)
             self.assertEqual(p.prediction, expected)
 
+
+class CsvTeamUploadTest(TestCase):
+    fixtures = ['accounts.json']
+
+    def setUp(self):
+        # staff and superuser
+        self.user = User.objects.get(username='testuser1')
+        self.client.force_login(self.user)
+
+    def test_team_upload(self):
+        add_url = reverse('admin:competition_sport_add')
+        list_url = reverse('admin:competition_sport_changelist')
+        with open('test/teams_A_to_H_upload.csv') as fd:
+            response = self.client.post(add_url, {
+                'name': 'sport',
+                'scoring_unit': 'point',
+                'match_start_verb': 'Kick Off',
+                'add_teams': fd,
+                'team_set-TOTAL_FORMS': 0,
+                'team_set-INITIAL_FORMS': 0,
+                '_save': 'Save',
+            })
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, list_url)
+
+        s = Sport.objects.get(name='sport')
+
+        self.assertEqual(s.name, 'sport')
+
+        teams = s.team_set.all()
+        self.assertEqual(len(teams), 8)
+
+        # get set of expected teams from first 8 letters
+        expected = set([(f'Team {l}', f'{l*3}') for l in string.ascii_uppercase[:8]])
+        self.assertEqual(set(teams.values_list('name', 'code')), expected)
+
+        edit_url = reverse('admin:competition_sport_change', args=[s.pk])
+
+        with open('test/teams_E_to_J_upload.csv') as fd:
+            response = self.client.post(edit_url, {
+                'name': 'sport',
+                'scoring_unit': 'point',
+                'match_start_verb': 'Kick Off',
+                'add_teams': fd,
+                'team_set-TOTAL_FORMS': 0,
+                'team_set-INITIAL_FORMS': 0,
+                '_save': 'Save',
+            })
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, list_url)
+
+        s = Sport.objects.get(name='sport')
+
+        self.assertEqual(s.name, 'sport')
+
+        teams = s.team_set.all()
+        self.assertEqual(len(teams), 10)
+
+        # get set of expected teams from first 8 letters
+        expected = set([(f'Team {l}', f'{l*3}') for l in string.ascii_uppercase[:10]])
+        self.assertEqual(set(teams.values_list('name', 'code')), expected)
+
+
+class CsvMatchUploadTest(TestCase):
+    fixtures = [
+            'accounts.json',
+            'teams.json',
+            ]
+
+    def setUp(self):
+        # staff and superuser
+        self.user = User.objects.get(username='testuser1')
+        self.client.force_login(self.user)
+
+    def test_match_upload(self):
+        add_url = reverse('admin:competition_tournament_add')
+        list_url = reverse('admin:competition_tournament_changelist')
+        with open('test/matches_upload.csv') as fd:
+            response = self.client.post(add_url, {
+                'name': 'new tourn',
+                'slug': 'new-tourn',
+                'sport': "1",
+                'state': 0,
+                'bonus': 2,
+                'draw_bonus': 1,
+                'year': 2022,
+                'add_matches': fd,
+                '_save': 'Save',
+            })
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, list_url)
+
+        t = Tournament.objects.get(name='new tourn')
+
+        self.assertEqual(t.name, 'new tourn')
+
+        matches = t.match_set.all()
+        # Team E does not exist
+        self.assertEqual(len(matches), 3)
+        self.assertEqual(f"{matches[0]}", "Team A Vs Team B")
+        self.assertEqual(f"{matches[1]}", "Team C Vs Team D")
+        self.assertEqual(f"{matches[2]}", "Team G Vs Team H")
+
+        Team.objects.create(name="Team E", code="EEE", sport=t.sport)
+
+        edit_url = reverse('admin:competition_tournament_change', args=[t.pk])
+
+        with open('test/matches_upload_winner_of.csv') as fd:
+            response = self.client.post(edit_url, {
+                'name': 'new tourn',
+                'slug': 'new-tourn',
+                'add_matches': fd,
+                '_save': 'Save',
+                'benchmark_set-TOTAL_FORMS': 0,
+                'benchmark_set-INITIAL_FORMS': 0,
+                'participant_set-TOTAL_FORMS': 0,
+                'participant_set-INITIAL_FORMS': 0,
+            })
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, list_url)
+
+        matches = t.match_set.all()
+        self.assertEqual(len(matches), 7)
+
+        self.assertEqual(f"{matches[0]}", "Team A Vs Team B")
+        self.assertEqual(f"{matches[1]}", "Team C Vs Team D")
+        self.assertEqual(f"{matches[2]}", "Team G Vs Team H")
+        self.assertEqual(f"{matches[3]}", "Team E Vs Team F")
+        self.assertEqual(f"{matches[4]}", "Team A/Team B Vs Team C/Team D")
+        self.assertEqual(f"{matches[5]}", "Team E/Team F Vs Team I")
+        self.assertEqual(f"{matches[6]}", "Team J Vs Team G/Team H")
+        self.assertEqual(f"{matches[7]}", "Team E/Team F/Team I Vs Team J/Team G/Team H")
+        self.assertEqual(f"{matches[8]}", "Team A/Team B/Team C/Team D Vs Team E/Team F/Team I/Team J/Team G/Team H")
