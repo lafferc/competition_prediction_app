@@ -1384,7 +1384,7 @@ class CsvMatchUploadTest(TestCase):
         self.assertRedirects(response, list_url)
 
         matches = t.match_set.all()
-        self.assertEqual(len(matches), 7)
+        self.assertEqual(len(matches), 9)
 
         self.assertEqual(f"{matches[0]}", "Team A Vs Team B")
         self.assertEqual(f"{matches[1]}", "Team C Vs Team D")
