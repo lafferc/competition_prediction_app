@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.db.models import Avg, Sum, F
+from django.http import HttpResponse
 from django.shortcuts import render
+from django.template import loader
 from competition.models import Team, Tournament, Match, Prediction, Participant
 from competition.models import Sport, Benchmark, BenchmarkPrediction
 import logging
@@ -192,31 +194,21 @@ class MatchAdmin(admin.ModelAdmin):
                   .annotate(Sum('score'), Avg('margin'))
                   .order_by('score__sum')[:10])
 
-        pos = ["1st", "2nd", "3rd", "4th", "5th",
-                "6th", "7th", "8th", "9th", "10th"]
-
-        i = 0;
-        prev = None
         for p in top_10:
             p['user'] = User.objects.get(pk=p['user'])
-            p['social_name'] = p['user'].profile.get_social_name(
-                    provider
-                    )
-            if prev and prev['score__sum'] == p['score__sum']:
-                p['pos'] = prev['pos']
-            else:
-                p['pos'] = pos[i]
+            p['social_name'] = p['user'].profile.get_social_name(provider)
 
-            i += 1
-            prev = p
+        context = {
+                'matches': queryset,
+                'top_10': top_10,
+                'form': form,
+                'action': 'show_top_ten',
+                }
 
-        return render(request,
-                      'admin/top10.html',
-                      context={'matches': queryset,
-                               'top_10': top_10,
-                               'form': form,
-                               'action': 'show_top_ten',
-                               })
+        template = loader.select_template([f'admin/{provider}_top10.html', 
+                                           'admin/top10.html'])
+
+        return HttpResponse(template.render(context, request))
     show_top_ten.allowed_permissions = ('change',)
 
     def swap_home_and_away(self, request, queryset):
