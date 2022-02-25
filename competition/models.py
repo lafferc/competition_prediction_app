@@ -513,6 +513,7 @@ class Prediction(PredictionBase):
 
     class Meta:
         unique_together = ('user', 'match',)
+        ordering = ['-match__kick_off', '-match__match_id']
 
 
 class Benchmark(Predictor):
@@ -625,3 +626,5 @@ class BenchmarkPrediction(PredictionBase):
 
     class Meta:
         unique_together = ('benchmark', 'match',)
+        ordering = ['-match__kick_off', '-match__match_id']
+

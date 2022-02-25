@@ -92,7 +92,7 @@ def predictions(request, slug):
                                                         match__tournament=tournament,
                                                         match__kick_off__lt=timezone.now(),
                                                         match__postponed=False
-                                                        ).order_by('-match__kick_off')
+                                                        )
                 other_user = other_user.profile.get_name()
         except User.DoesNotExist:
             g_logger.debug("User(%s) tried to look at %s's predictions but '%s' does not exist"
@@ -106,7 +106,7 @@ def predictions(request, slug):
         user_score = Participant.objects.get(user=request.user, tournament=tournament).score
         predictions = Prediction.objects.filter(user=request.user,
                                                 match__tournament=tournament
-                                                ).order_by('-match__kick_off')
+                                                )
 
     current_site = get_current_site(request)
     template = loader.get_template('predictions.html')
@@ -149,7 +149,7 @@ def table(request, slug):
                             predictor.get_name(),
                             predictor.score,
                             predictor.margin_per_match,
-                            predictor.get_predictions().filter(match__score__isnull=False).order_by('-match__kick_off')[:5]
+                            predictor.get_predictions().filter(match__score__isnull=False)[:5]
                             ))
 
     current_site = get_current_site(request)
@@ -378,7 +378,7 @@ def benchmark_table(request, slug):
                             predictor.get_name(),
                             predictor.score,
                             predictor.margin_per_match,
-                            predictor.get_predictions().filter(match__score__isnull=False).order_by('-match__kick_off')[:5]
+                            predictor.get_predictions().filter(match__score__isnull=False)[:5]
                             ))
 
     current_site = get_current_site(request)
@@ -404,7 +404,7 @@ def benchmark(request, benchmark_pk):
 
     predictions = benchmark.benchmarkprediction_set.filter(
         match__kick_off__lt=timezone.now(),
-        match__postponed=False).order_by('-match__kick_off')
+        match__postponed=False)
 
     current_site = get_current_site(request)
     template = loader.get_template('predictions.html')
