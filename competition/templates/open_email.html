@@ -2,8 +2,8 @@
 
 {% trans "Hi" %} {{ user.username }},
 
-{% blocktrans %}You can now submit your predictions for {{ tournament_name }}.{% endblocktrans %}
- {{ protocol }}://{{ site_domain }}{% url 'competition:join' tournament_name %}
+{% blocktrans with tournament_name=tournament.name %}You can now submit your predictions for {{ tournament_name }}.{% endblocktrans %}
+ {{ protocol }}://{{ site_domain }}{% url 'competition:join' tournament.slug %}
 
 {% blocktrans %}The {{ site_name }} team{% endblocktrans %}
 

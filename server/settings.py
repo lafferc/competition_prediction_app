@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'competition',
     'member',
 
@@ -49,19 +50,19 @@ INSTALLED_APPS = (
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.twitter',
-    # 'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.reddit',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-)
+]
 
 ROOT_URLCONF = 'server.urls'
 
@@ -170,6 +171,9 @@ LOGGING = {
         'member': {
             'handlers': ['console', 'file'],
         },
+        'server': {
+            'handlers': ['console', 'file'],
+        },
     },
 }
 
@@ -187,6 +191,8 @@ else: # !DEBUG
     EMAIL_PORT = 587
     EMAIL_HOST_USER = os.getenv('DJANGO_EMAIL_USER', None)
     EMAIL_HOST_PASSWORD = os.getenv('DJANGO_EMAIL_PASS', None)
+    DEFAULT_FROM_EMAIL = os.getenv('DJANGO_EMAIL_USER', None)
+    SERVER_EMAIL = os.getenv('DJANGO_EMAIL_USER', None)
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -206,7 +212,11 @@ AUTHENTICATION_BACKENDS = (
 
 SITE_ID = 1
 
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+with open(os.path.join(BASE_DIR, "VERSION")) as v_file:
+    APP_VERSION_NUMBER = v_file.read().strip()
 
 # Provider specific settings SOCIALACCOUNT_PROVIDERS = { 'google': { # For each OAuth based provider, either add a ``SocialApp`` # (``socialaccount`` app) containing the required client # credentials, or list them here: 'APP': { 'client_id': '123', 'secret': '456', 'key': '' } } }
 SOCIALACCOUNT_PROVIDERS = {
@@ -227,7 +237,12 @@ SOCIALACCOUNT_PROVIDERS = {
         'EXCHANGE_TOKEN': True,
         'VERIFIED_EMAIL': False,
         'VERSION': 'v7.0',
-    }
+    },
+    'reddit': {
+        'AUTH_PARAMS': {'duration': 'permanent'},
+        'SCOPE': ['identity', 'submit'],
+        'USER_AGENT': 'django:myappid:%s (by /u/yourredditname)' % APP_VERSION_NUMBER,
+    },
 }
 
 # AllAuth settings
@@ -238,6 +253,8 @@ ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = False
 ACCOUNT_LOGOUT_ON_GET = True
 # ACCOUNT_USER_DISPLAY = user.profile.get_name
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
+ACCOUNT_EMAIL_CONFIRMATION_HMAC = False
+ACCOUNT_EMAIL_CONFIRMATION_COOLDOWN = 14400 # 4hrs
 
 ACCOUNT_FORMS = {
     'signup': 'server.forms.SignUpForm',
@@ -245,6 +262,3 @@ ACCOUNT_FORMS = {
 SOCIALACCOUNT_FORMS = {
     'signup': 'server.forms.SocialSignupForm'
 }
-
-with open(os.path.join(BASE_DIR, "VERSION")) as v_file:
-    APP_VERSION_NUMBER = v_file.read()

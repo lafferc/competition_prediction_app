@@ -1,7 +1,17 @@
 {% extends "base.html" %}
 
 {% block nav %}
+{% if user.is_authenticated %}
     <h2 align="center">GDPR and Cookie Policy</h2>
+{% else %}
+<div data-role="navbar">
+    <ul>
+        <li><a href="{% url 'account_login' %}">Login</a></li>
+        <li><a href="{% url 'about' %}">About Us</a></li>
+        <li><a href="{% url 'gdpr' %}" class="ui-btn-active">GDPR and Cookie Policy</a></li>
+    </ul>
+</div>
+{% endif %}
 {% endblock %}
 {% block content %}
 <h3>Cookies</h3>

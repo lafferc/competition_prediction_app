@@ -1,0 +1,16 @@
+.matches_today, .matches_tomorrow {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.match_no_prediction {
+    content: url(../admin/img/icon-alert.svg);
+}
+
+.htmx-indicator {
+    max-width: 100%;
+    max-height: 300px;
+    display:block;
+    margin-left: auto;
+    margin-right: auto;
+}

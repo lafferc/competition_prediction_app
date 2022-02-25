@@ -18,8 +18,8 @@ class Migration(migrations.Migration):
                 ('prediction', models.DecimalField(default=0, max_digits=5, decimal_places=2)),
                 ('score', models.DecimalField(null=True, max_digits=5, decimal_places=2, blank=True)),
                 ('margin', models.DecimalField(null=True, max_digits=5, decimal_places=2, blank=True)),
-                ('benchmark', models.ForeignKey(to='competition.Benchmark')),
-                ('match', models.ForeignKey(to='competition.Match')),
+                ('benchmark', models.ForeignKey(to='competition.Benchmark', on_delete=models.CASCADE)),
+                ('match', models.ForeignKey(to='competition.Match', on_delete=models.CASCADE)),
             ],
         ),
         migrations.AlterUniqueTogether(

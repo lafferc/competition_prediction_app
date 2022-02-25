@@ -3,7 +3,7 @@
 {% if all_tournaments %}
     <ul>
     {% for tournament in all_tournaments %}
-        <li><a href="{% url 'competition:submit' tournament.name %}">{{ tournament.name }}</a></li>
+        <li><a href="{{ tournament.get_absolute_url }}">{{ tournament.name }}</a></li>
     {% endfor %}
     </ul>
 {% else %}

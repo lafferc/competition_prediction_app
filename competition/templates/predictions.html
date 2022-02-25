@@ -1,5 +1,7 @@
 {% extends "competition_base.html" %}
 
+{% load static %}
+
 {% block content %}
 {% if not other_user and user_score %}
     <p>Your current score is {{ user_score }}</p>
@@ -8,13 +10,14 @@
     {% if other_user %}
         <p>Here are the predictions that {{ other_user }} has made</p>
     {% endif %}
-    <table style="width:auto" border="1">
+    <table>
         <tr>
             <th>Match id</th>
             <th>Match</th>
             <th>Prediction</th>
             <th>Result</th>
             <th>{% if not other_user %}Your {% endif %}Score</th>
+            <th class="prediction_correct"></th>
         </tr>
     <script>
     function edit_prediction(id) {
@@ -23,31 +26,7 @@
     }
     </script>
     {% for prediction in predictions %}
-        <tr>
-            <td>{{ prediction.match.match_id }}</td>
-        {% if is_participant %}
-            <td><a href="{% url 'competition:match' prediction.match.pk %}">{{ prediction.match }}</a></td>
-        {% else %}
-            <td>{{ prediction.match }}</td>
-        {% endif %}
-        {% if not other_user and not prediction.match.has_started %}
-            <td id="prediction_score_row_{{ prediction.id }}">
-                    {{ prediction.prediction }}
-                    <button data-icon="edit" onclick="edit_prediction('{{ prediction.id }}')" />
-            </td>
-            <td id="prediction_edit_row_{{ prediction.id }}" style="display: none" >
-                <form method="post">{% csrf_token %}
-                    <input type="hidden" name="prediction_id" value="{{ prediction.id }}">
-                    <input type="text" name="prediction_prediction" value="{{ prediction.prediction }}">
-                    <input type="submit" data-icon="check">
-                </form>
-            </td>
-        {% else %}
-            <td>{{ prediction.prediction }}</td>
-        {% endif %}
-            <td>{{ prediction.match.score }}</td>
-            <td>{{ prediction.score }}</td>
-        </tr>
+        {% include 'partial/prediction_update.html' %}
     {% endfor %}
     </table>
 {% else %}

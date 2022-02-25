@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('static_value', models.DecimalField(null=True, max_digits=5, decimal_places=2, blank=True)),
                 ('range_start', models.IntegerField(null=True, blank=True)),
                 ('range_end', models.IntegerField(null=True, blank=True)),
-                ('tournament', models.ForeignKey(to='competition.Tournament')),
+                ('tournament', models.ForeignKey(to='competition.Tournament', on_delete=models.CASCADE)),
             ],
         ),
     ]

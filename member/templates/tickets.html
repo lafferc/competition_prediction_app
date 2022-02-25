@@ -2,52 +2,7 @@
 
 {% block style %}
     {% load staticfiles %}
-
-<style>
-
-div.ticket {
-    display: grid;
-    grid-template-columns: auto auto auto auto;
-    border: 20px solid powderblue;
-    padding: 20px;
-    float: left;
-    width:500px;
-    height:150px;
-}
-.org_info {
-    display: grid;
-    grid-template-rows: auto auto auto;
-}
-.info {
-    grid-column-start: 2;
-    grid-column-end: 4;
-}
-.info > h2 {
-    margin-top: 0;
-    text-align:center;
-}
-.instructions > p {
-    margin-top: 0;
-    margin-bottom: 0;
-    font-size: 12px;
-}
-.token {
-    text-align:center;
-    font-family: monospace;
-    font-size: 16px;
-}
-.site_logo {
-    display: grid;
-    grid-template-rows: auto auto auto;
-}
-img {
-    grid-row-start: 2;
-    width:100px;
-
-
-}
-</style>
-
+    <link rel="stylesheet" href="{% static 'member/tickets.css' %}">
 {% endblock %}
 
 {% block nav %}
@@ -60,7 +15,7 @@ img {
 <div class=tickets>
 {% for ticket in tickets %}
     <div class=ticket>
-        <div class=org_info><img src="{{ comp.organisation.logo.url }}"></div>
+        <div class=org_info>{% if comp.organisation.logo %}<img src="{{ comp.organisation.logo.url }}">{% endif %}</div>
         <div class=info>
             <h2>{{ comp.tournament.name }}</h2>
             <div class=token><h1>{{ticket.token}}</h1></div>

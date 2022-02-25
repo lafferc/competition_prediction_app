@@ -1,0 +1,202 @@
+[
+    {
+        "model": "competition.tournament",
+        "pk": 2,
+        "fields": {
+            "name": "active_tourn",
+            "slug": "active_tourn",
+            "sport": 1,
+            "state": 1,
+            "participants": [4, 5, 6, 7, 8]
+        }
+    },
+    {
+        "model": "competition.match",
+        "pk": 1,
+        "fields": {
+            "tournament": 2,
+            "match_id": 1,
+            "home_team": 1,
+            "away_team": 2,
+            "kick_off": "2022-02-22T22:22:22+00:00"
+        }
+    },
+    {
+        "model": "competition.match",
+        "pk": 2,
+        "fields": {
+            "tournament": 2,
+            "match_id": 2,
+            "home_team": 3,
+            "away_team": 4,
+            "kick_off": "2022-02-22T22:22:22+00:00"
+        }
+    },
+    {
+        "model": "competition.match",
+        "pk": 3,
+        "fields": {
+            "tournament": 2,
+            "match_id": 3,
+            "home_team": 1,
+            "away_team": 3,
+            "kick_off": "2022-02-22T22:22:22+00:00"
+        }
+    },
+    {
+        "model": "competition.match",
+        "pk": 4,
+        "fields": {
+            "tournament": 2,
+            "match_id": 4,
+            "home_team": 2,
+            "away_team": 4,
+            "kick_off": "2022-02-22T22:22:22+00:00"
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 1,
+            "prediction": 0,
+            "user": 4
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 1,
+            "prediction": 0,
+            "user": 5
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 1,
+            "prediction": 0,
+            "user": 6
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 1,
+            "prediction": 0,
+            "user": 7
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 2,
+            "prediction": -1,
+            "user": 4
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 2,
+            "prediction": -3,
+            "user": 5
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 2,
+            "prediction": 2,
+            "user": 6
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 2,
+            "prediction": 1,
+            "user": 7
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 2,
+            "prediction": 4,
+            "user": 8
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 3,
+            "prediction": -3,
+            "user": 4
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 3,
+            "prediction": 1,
+            "user": 5
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 3,
+            "prediction": 2,
+            "user": 6
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 3,
+            "prediction": 5,
+            "user": 7
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 4,
+            "prediction": -5,
+            "user": 4
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 4,
+            "prediction": 1,
+            "user": 5
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 4,
+            "prediction": 1.5,
+            "user": 6
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 4,
+            "prediction": 2,
+            "user": 7
+        }
+    },
+    {
+        "model": "competition.prediction",
+        "fields": {
+            "match": 4,
+            "prediction": 2,
+            "user": 8
+        }
+    }
+]
+

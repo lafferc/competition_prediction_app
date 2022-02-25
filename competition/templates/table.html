@@ -1,23 +1,29 @@
 {% extends "competition_base.html" %}
 
+{% load humanize %}
 {% block content %}
 {% if leaderboard %}
     {% if competitions %}
     <select onchange="location = this.options[this.selectedIndex].value;">
         <option>Click to view sub-competitions</option>
         {% for competition in competitions %}
-        <option value="{% url 'competition:org_table' TOURNAMENT competition %}">{{ competition }}</option>
+        <option value="{% url 'competition:org_table' TOURNAMENT.slug competition %}">{{ competition }}</option>
         {% endfor %}
     </select> 
     {% endif %}
-    <table style="width:auto" border="1">
+    <table>
         <tr>
+            <th>Pos</th>
             <th title="To view another user's predictions click on their name">User</th>
             <th title="The user with the lowest score is winning">Score</th>
             <th title='The "average margin" is the average difference between the predicted margin and actual margin. This does not include bonuses.'>Average margin</th>
+    {% if leaderboard.0.4 %}
+            <th>Last {{ leaderboard.0.4 | length }}</th>
+    {% endif %}
         </tr>
-    {% for link, name, score, avg_margin in leaderboard %}
+    {% for link, name, score, avg_margin, predictions in leaderboard %}
         <tr>
+            <td>{{ forloop.counter0 | add:participants.start_index | ordinal }}</td>
             {% if link %}
             <td><a href="{{ link }}">{{ name }}</a></td>
             {% else %}
@@ -25,6 +31,9 @@
             {% endif %}
             <td>{{ score }}</td>
             <td>{{ avg_margin }}</td>
+        {% for prediction in predictions %}
+            <td class="{{ prediction.css_class_correct }}"></td>
+        {% endfor %}
         </tr>
     {% endfor %}
     </table>
@@ -46,11 +55,9 @@
     </div>
     {% endif %}
     {% if has_benchmark %}
-        {% if user.profile.test_features_enabled or TOURNAMENT.test_features_enabled %}
-    <div class="test_feature">
-        <a href="{% url 'competition:benchmark_table' TOURNAMENT %}">Show benchmarks</a>
+    <div>
+        <a href="{% url 'competition:benchmark_table' TOURNAMENT.slug %}">Show benchmarks</a>
     </div>
-        {% endif %}
     {% endif %}
 {% endif %}
 {% endblock %}

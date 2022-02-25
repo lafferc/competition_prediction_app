@@ -1,11 +1,12 @@
-from django.db import models, IntegrityError
+from django.db import models, IntegrityError, transaction
 from django.db.models import Avg, Max
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
 from django.core import mail
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
+from django.template.defaultfilters import slugify
 from django.template.loader import render_to_string
 from django.utils import timezone
 from io import StringIO
@@ -14,6 +15,7 @@ import csv
 import datetime
 import random
 from decimal import Decimal
+import statistics
 
 g_logger = logging.getLogger(__name__)
 
@@ -39,8 +41,10 @@ class Sport(models.Model):
         self.add_teams = None
         super(Sport, self).save(*args, **kwargs)
 
-        if not csv_file:
-            return
+        if csv_file:
+            self.handle_teams_upload(csv_file)
+
+    def handle_teams_upload(self, csv_file):
 
         io_file = csv_file.read().decode('utf-8')
 
@@ -49,15 +53,16 @@ class Sport(models.Model):
         for row in reader:
             try:
                 row['sport'] = self
-                Team(**row).save()
-            except IntegrityError:
-                g_logger.exception("Failed to add team")
+                with transaction.atomic():
+                    Team(**row).save()
+            except IntegrityError as e:
+                g_logger.error(f"Failed to add team({row['name']}, {row['code']}) -- {e}")
 
 
 class Team(models.Model):
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=3)
-    sport = models.ForeignKey(Sport)
+    sport = models.ForeignKey(Sport, models.CASCADE)
 
     def __str__(self):
         return self.name
@@ -75,16 +80,19 @@ class Tournament(models.Model):
 
     name = models.CharField(max_length=200, unique=True)
     participants = models.ManyToManyField(User, through="Participant")
-    sport = models.ForeignKey(Sport)
+    sport = models.ForeignKey(Sport, models.CASCADE)
     bonus = models.DecimalField(max_digits=5, decimal_places=2, default=2)
     draw_bonus = models.DecimalField(max_digits=5, decimal_places=2, default=1)
-    late_get_bonus = models.BooleanField(default=False)
     state = models.IntegerField(default=PENDING,
                                 choices=((PENDING, "Pending"),
                                          (ACTIVE, "Active"),
                                          (FINISHED, "Finished"),
                                          (ARCHIVED, "Archived")))
-    winner = models.ForeignKey("Participant", null=True, blank=True, related_name='+')
+    winner = models.ForeignKey("Participant",
+                               models.CASCADE,
+                               null=True,
+                               blank=True,
+                               related_name='+')
     add_matches = models.FileField(null=True, blank=True)
     year = models.IntegerField(choices=YEAR_CHOICES, default=current_year)
     test_features_enabled = models.BooleanField(default=False)
@@ -95,11 +103,14 @@ class Tournament(models.Model):
                      ("extra_time", "extra_time"),),
             null=True,
             blank=True)
+    slug = models.SlugField(unique=True)
+    additional_rules = models.TextField(null=True, blank=True)
+
+    def get_absolute_url(self):
+        return reverse('competition:submit', kwargs={'slug': self.slug})
 
     def is_closed(self):
-        if self.state in [self.FINISHED, self.ARCHIVED]:
-            return True
-        return False
+        return self.state in [self.FINISHED, self.ARCHIVED]
 
     def __str__(self):
         return self.name
@@ -176,7 +187,7 @@ class Tournament(models.Model):
         for user in User.objects.all():
             message = render_to_string('open_email.html', {
                 'user': user,
-                'tournament_name': self.name,
+                'tournament': self,
                 'site_name': current_site.name,
                 'site_domain': current_site.name,
                 'protocol': 'https' if request.is_secure() else 'http',
@@ -196,11 +207,16 @@ class Tournament(models.Model):
     def save(self, *args, **kwargs):
         csv_file = self.add_matches
         self.add_matches = None
+
+        if not self.slug:
+            self.slug = slugify(self.name)
+
         super(Tournament, self).save(*args, **kwargs)
 
-        if not csv_file:
-            return
+        if csv_file:
+            self.handle_match_upload(csv_file)
 
+    def handle_match_upload(self, csv_file):
         io_file = csv_file.read().decode('utf-8')
 
         g_logger.info("handle_match_upload for %s csv:%s"
@@ -226,10 +242,10 @@ class Tournament(models.Model):
                 else:
                     row['away_team'] = self.find_team(row['away_team'])
                     row['away_team_winner_of'] = None
-                # with transaction.atomic():
-                Match(**row).save()
-            except (IntegrityError, ValidationError, Team.DoesNotExist, Match.DoesNotExist):
-                g_logger.exception("Failed to add match")
+                with transaction.atomic():
+                    Match(**row).save()
+            except (IntegrityError, ValidationError, Team.DoesNotExist, Match.DoesNotExist) as e:
+                g_logger.error(f"Failed to add match {row} -- {e}")
 
     class Meta:
         permissions = (
@@ -238,7 +254,7 @@ class Tournament(models.Model):
 
 
 class Predictor(models.Model):
-    tournament = models.ForeignKey(Tournament)
+    tournament = models.ForeignKey(Tournament, models.CASCADE)
     score = models.DecimalField(blank=True, null=True, max_digits=6, decimal_places=2)
     margin_per_match = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
 
@@ -303,7 +319,7 @@ class Predictor(models.Model):
 
 
 class Participant(Predictor):
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, models.CASCADE)
 
     def __str__(self):
         return "%s:%s" % (self.tournament, self.user)
@@ -326,7 +342,7 @@ class Participant(Predictor):
 
     def get_url(self):
         return "%s?user=%s" % (
-            reverse('competition:predictions', args=(self.tournament.name,)),
+            reverse('competition:predictions', args=(self.tournament.slug,)),
             self.user.username)
 
     class Meta:
@@ -334,14 +350,28 @@ class Participant(Predictor):
 
 
 class Match(models.Model):
-    tournament = models.ForeignKey(Tournament)
+    tournament = models.ForeignKey(Tournament, models.CASCADE)
     match_id = models.IntegerField(blank=True)
     kick_off = models.DateTimeField(verbose_name='Start Time')
-    home_team = models.ForeignKey(Team, related_name='match_home_team', null=True, blank=True)
-    home_team_winner_of = models.ForeignKey('self', blank=True, null=True,
+    home_team = models.ForeignKey(Team,
+                                  models.CASCADE,
+                                  related_name='match_home_team',
+                                  null=True,
+                                  blank=True)
+    home_team_winner_of = models.ForeignKey('self',
+                                            models.CASCADE,
+                                            blank=True,
+                                            null=True,
                                             related_name='match_next_home')
-    away_team = models.ForeignKey(Team, related_name='match_away_team', null=True, blank=True)
-    away_team_winner_of = models.ForeignKey('self', blank=True, null=True,
+    away_team = models.ForeignKey(Team,
+                                  models.CASCADE,
+                                  related_name='match_away_team',
+                                  null=True,
+                                  blank=True)
+    away_team_winner_of = models.ForeignKey('self',
+                                            models.CASCADE,
+                                            blank=True,
+                                            null=True,
                                             related_name='match_next_away')
     score = models.IntegerField(blank=True, null=True)
     postponed = models.BooleanField(blank=True, default=False)
@@ -423,19 +453,23 @@ class Match(models.Model):
 
 
 class PredictionBase(models.Model):
-    match = models.ForeignKey(Match)
+    match = models.ForeignKey(Match, models.CASCADE)
     prediction = models.DecimalField(default=0, max_digits=5, decimal_places=2)
     score = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
     margin = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
+    correct = models.NullBooleanField()
 
     def calc_score(self, result):
         self.margin = abs(result - self.prediction)
         if self.prediction == result:
             self.score = -self.bonus(result)
+            self.correct = True
         elif (self.prediction < 0 and result < 0) or (self.prediction > 0 and result > 0):
             self.score = self.margin - self.bonus(result)
+            self.correct = True
         else:
             self.score = self.margin
+            self.correct = False
 
     def bonus(self, result):
         if result == 0:  # draw
@@ -445,39 +479,54 @@ class PredictionBase(models.Model):
     def get_predictor(self):
         raise NotImplementedError("%s didn't override get_predictor" % self.__class__)
 
+    def css_class_correct(self):
+        if self.correct is True:
+            return "prediction_correct"
+        if self.correct is False:
+            return "prediction_incorrect"
+        return "prediction_unknown"
+
     class Meta:
         abstract = True
 
 
 class Prediction(PredictionBase):
     entered = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, models.CASCADE)
     late = models.BooleanField(blank=True, default=False)
 
     def __str__(self):
         return "%s: %s" % (self.user, self.match)
 
     def bonus(self, result):
-        if self.late and not self.match.tournament.late_get_bonus:
+        if self.late:
             return 0
         return super(Prediction, self).bonus(result)
 
     def get_predictor(self):
         return self.match.tournament.participant_set.get(user=self.user)
 
+    def css_class_correct(self):
+        if self.late:
+            return "prediction_missed"
+        return super(Prediction, self).css_class_correct()
+
     class Meta:
         unique_together = ('user', 'match',)
+        ordering = ['-match__kick_off', '-match__match_id']
 
 
 class Benchmark(Predictor):
     STATIC = 0
     MEAN = 1
     RANDOM = 2
+    MEDIAN = 3
 
     name = models.CharField(max_length=50)
     prediction_algorithm = models.IntegerField(choices=(
         (STATIC, "Fixed value"),
-        (MEAN, "Average"),
+        (MEAN, "Average (mean)"),
+        (MEDIAN, "Median"),
         (RANDOM, "Random range")))
     static_value = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
     range_start = models.IntegerField(blank=True, null=True)
@@ -488,6 +537,8 @@ class Benchmark(Predictor):
             return "%s STATIC(%d) %s" % (self.tournament, self.static_value, self.name)
         elif self.prediction_algorithm == self.MEAN:
             return "%s MEAN %s" % (self.tournament, self.name)
+        elif self.prediction_algorithm == self.MEDIAN:
+            return "%s MEDIAN %s" % (self.tournament, self.name)
         elif self.prediction_algorithm == self.RANDOM:
             return "%s RANDOM(%d, %d) %s" % (self.tournament, self.range_start,
                                              self.range_end, self.name)
@@ -498,7 +549,7 @@ class Benchmark(Predictor):
 
         if self.prediction_algorithm == self.STATIC:
             self.clean_static()
-        elif self.prediction_algorithm == self.MEAN:
+        elif self.prediction_algorithm in [self.MEAN, self.MEDIAN]:
             self.clean_mean()
         elif self.prediction_algorithm == self.RANDOM:
             self.clean_random()
@@ -543,6 +594,10 @@ class Benchmark(Predictor):
                 prediction.prediction = 0
         elif self.prediction_algorithm == self.RANDOM:
             prediction.prediction = random.randint(self.range_start, self.range_end)
+        elif self.prediction_algorithm == self.MEDIAN:
+            results = Prediction.objects.filter(match=match, late=False).values_list('prediction', flat=True)
+            median = statistics.median(results)
+            prediction.prediction = median
 
         return prediction
 
@@ -561,7 +616,7 @@ class Benchmark(Predictor):
 
 
 class BenchmarkPrediction(PredictionBase):
-    benchmark = models.ForeignKey(Benchmark)
+    benchmark = models.ForeignKey(Benchmark, models.CASCADE)
 
     def __str__(self):
         return "%s: %s" % (self.benchmark, self.match)
@@ -571,3 +626,5 @@ class BenchmarkPrediction(PredictionBase):
 
     class Meta:
         unique_together = ('benchmark', 'match',)
+        ordering = ['-match__kick_off', '-match__match_id']
+

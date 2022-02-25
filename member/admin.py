@@ -1,8 +1,9 @@
 from django.contrib import admin
-from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from allauth.socialaccount.models import SocialApp
 from member.models import Profile, Organisation, Competition, Ticket
 
 import logging
@@ -39,21 +40,25 @@ class ParticipantInline(admin.TabularInline):
         return field
 
 
-def add_tickets(modeladmin, request, queryset):
-    g_logger.debug("add_tickets(%r, %r, %r)", modeladmin, request, queryset)
-    for comp in queryset:
-        for i in range(10):
-            Ticket.objects.create(competition=comp)
-
-
 class CompetitionAdmin(admin.ModelAdmin):
     inlines = (TicketInline, ParticipantInline)
-    actions = [add_tickets]
+    actions = ["add_tickets"]
     list_display = ('organisation', 'tournament', 'participant_count')
     fields = ('organisation', 'tournament', 'token_len')
+    list_filter = [
+            ('organisation', admin.RelatedOnlyFieldListFilter),
+            ('tournament', admin.RelatedOnlyFieldListFilter),
+            ]
+
+    def get_queryset(self, request):
+        from django.db.models import Count
+        qs = super().get_queryset(request)
+        qs = qs.annotate(Count('participants'))
+        return qs
 
     def participant_count(self, obj):
-        return obj.participants.count()
+        return obj.participants__count
+    participant_count.admin_order_field = 'participants__count'
 
     def get_readonly_fields(self, request, obj):
         return obj and ('organisation', 'tournament') or []
@@ -66,9 +71,34 @@ class CompetitionAdmin(admin.ModelAdmin):
         request._obj_ = obj
         return super(CompetitionAdmin, self).get_form(request, obj, **kwargs)
 
+    def add_tickets(self, request, queryset):
+        g_logger.debug("add_tickets(%r, %r, %r)", self, request, queryset)
+        for comp in queryset:
+            for i in range(10):
+                Ticket.objects.create(competition=comp)
+    add_tickets.allowed_permissions = ('add',)
+
 
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'test_features_enabled')
+    list_display = ('user', 'user__id', 'test_features_enabled')
+    actions = ["display_social_names"]
+    list_filter = ["user__last_login"]
+
+    def user__id(self, obj):
+        return obj.user.id
+    user__id.admin_order_field = 'user__id'
+
+    def get_search_fields(self, request):
+        return ['user__' + f for f in UserAdmin.search_fields]
+
+    def display_social_names(self, request, queryset):
+        info = {}
+        for s_app in SocialApp.objects.all():
+            info[s_app.provider] = [(p, p.get_social_name(s_app.provider)) for p in queryset]
+
+        return render(request,
+                      'admin/social_display_names.html',
+                      context={'info': info})
 
 
 class CustomUserAdmin(UserAdmin):
@@ -92,8 +122,7 @@ class CustomUserAdmin(UserAdmin):
                       context={'users':queryset})
 
 
-
-admin.site.register(Profile)
+admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Organisation)
 admin.site.register(Competition, CompetitionAdmin)
 

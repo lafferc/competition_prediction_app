@@ -1,0 +1,14 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+
+{% for provider, profiles in info.items %}
+<h1>{{provider}}</h1>
+
+<ul>
+    {% for profile, name in profiles %}
+    <li>{{profile.user.id}} | {{profile}} | {{name}} </li>
+    {% endfor %}
+</ul>
+{% endfor %}
+{% endblock %}

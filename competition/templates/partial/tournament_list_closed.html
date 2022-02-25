@@ -1,0 +1,10 @@
+{% if closed_tournaments %}
+    <div class="closed_tournaments">
+        <h3>Previous competitions</h3>
+        <ul>
+        {% for tournament in closed_tournaments %}
+            <li>Congratulations to {{tournament.winner.user.profile.get_name}} who won <a href="{{ tournament.get_absolute_url }}">{{ tournament.name }}</a> with a score of {{tournament.winner.score}}</li>
+        {% endfor %}
+        </ul>
+    </div>
+{% endif %}
