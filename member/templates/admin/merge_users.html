@@ -1,4 +1,14 @@
-{% extends "admin/base_site.html" %}
+{% extends "admin/delete_selected_confirmation.html" %}
+{% load i18n l10n admin_urls %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+&rsaquo; {% trans 'Merge multiple users' %}
+</div>
+{% endblock %}
 
 {% block content %}
 <form action="" method="post">
@@ -6,17 +16,50 @@
 <p>
 Are you sure you want to execute this action on the selected items?
 </p>  
-<p> List of Users </p>
+<table>
+    <tr>
+        <th>username</th>
+        <th>first</th>
+        <th>last</th>
+        <th>email</th>
+        <th>display name format</th>
+        <th>social display name format</th>
+        <th>can receive email</th>
+        <th>email on new comp</th>
+        <th>test features emabled</th>
+        <th>cookie consent</th>
+    </tr>
+  {% for user in users %}
+    <tr>
+        <td>{{ user }}</td>
+        <td>{{ user.first_name }}</td>
+        <td>{{ user.last_name }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.profile.display_name_format }}</td>
+        <td>{{ user.profile.social_display_name_format }}</td>
+        <td>{{ user.profile.can_receive_emails }}</td>
+        <td>{{ user.profile.email_on_new_competition }}</td>
+        <td>{{ user.profile.test_features_enabled }}</td>
+        <td>{{ user.profile.cookie_consent }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<h2> List of Users and emails</h2>
 <ul>
   {% for user in users %}
     <li>
       {{ user }} {{ user.profile }} {{ user.email }}
     </li>
+    <ul>
+        {% for email in user.emailaddress_set.all %}
+        <li> {{email}} </li>
+        {% endfor %}
+    </ul>
     <input type="hidden" name="_selected_action" value="{{ user.pk }}" />
   {% endfor %}
 </ul>
 
-<p> List of social accounts <p>
+<h2> List of social accounts </h2>
 <ul>
   {% for user in users %}
     <li>
@@ -33,13 +76,30 @@ Are you sure you want to execute this action on the selected items?
   {% endfor %}
 </ul>
       
+<h2> List of tourns and number of perdictions </h2>
+<ul>
+    {% for tourn, prediction_counts in tourn_dict.items %}
+    <li>
+        <h3>{{ tourn }}</h3>
+    </li>
+    <ul>
+        {% for user, p_all, p_late in prediction_counts %}
+        <li>
+            {{user}}: predictions total {{p_all}}
+            {% if p_late %}
+                missed {{p_late}}
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endfor %}
+</ul>
 
-<p> List of tourns and number of perdictions </p>
-
-{{ somthing }}
-
+       
   <input type="hidden" name="action" value="merge_users" />
-  <input type="submit" name="apply" value="Merge accounts"/>
+  <input type="hidden" name="apply" value="Merge accounts"/>
+  <input type="submit" value="Yes, I'm sure">
+  <a href="#" class="button cancel-link">No, take me back</a>
 </form>
 {% endblock %}
 

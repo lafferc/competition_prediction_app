@@ -82,7 +82,7 @@ class CompetitionAdmin(admin.ModelAdmin):
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'user__id', 'test_features_enabled')
     actions = ["display_social_names"]
-    list_filter = ["user__last_login"]
+    list_filter = ["test_features_enabled", "user__is_staff", "user__last_login"]
 
     def user__id(self, obj):
         return obj.user.id
@@ -103,11 +103,14 @@ class ProfileAdmin(admin.ModelAdmin):
 
 class CustomUserAdmin(UserAdmin):
     actions = ['merge_users']
+    list_filter = UserAdmin.list_filter + ("last_login",)
 
     def merge_users(self, request, queryset):
         if 'apply' in request.POST:
             # The user clicked submit on the intermediate form.
             # Perform our update action:
+
+            # TODO merge accounts
 
             # Redirect to our admin view after our update has 
             # completed with a nice little info message saying 
@@ -115,11 +118,26 @@ class CustomUserAdmin(UserAdmin):
             self.message_user(request,
                               "Merged {} users".format(queryset.count()))
             return HttpResponseRedirect(request.get_full_path())
-        # TODO get list of tourns and count of matches
+
+        tourn_dict = {}
+        for user in queryset:
+            for tourn in user.tournament_set.all():
+                predictions_all = user.prediction_set.filter(match__tournament=tourn).count()
+                predictions_late = user.prediction_set.filter(match__tournament=tourn, late=True).count()
+                if tourn not in tourn_dict:
+                    tourn_dict[tourn] = []
+                tourn_dict[tourn].append((user, predictions_all, predictions_late))
+
+        context = {
+            'users':queryset,
+            'tourn_dict': tourn_dict,
+            'opts': self.model._meta,
+            'media': self.media,
+            }
 
         return render(request,
                       'admin/merge_users.html',
-                      context={'users':queryset})
+                      context=context)
 
 
 admin.site.register(Profile, ProfileAdmin)
