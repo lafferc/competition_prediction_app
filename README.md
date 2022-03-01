@@ -3,5 +3,7 @@
 ## Installation steps
 
 `autoconf`
+
 `./configure`
+
 `make install`
