@@ -1,4 +1,4 @@
-django==2.2.26
+django==2.2.27
 pytz==2018.4
 pillow==8.4
 django-recaptcha==2.0.6
