@@ -1,0 +1,90 @@
+[
+    {
+        "model": "competition.sport",
+        "pk": 1,
+        "fields": {
+            "name": "sport"
+        }
+    },
+    {
+        "model": "competition.team",
+        "pk": 1,
+        "fields": {
+            "name": "Team A",
+            "code": "AAA",
+            "sport": 1
+        }
+    },
+    {
+        "model": "competition.team",
+        "pk": 2,
+        "fields": {
+            "name": "Team B",
+            "code": "BBB",
+            "sport": 1
+        }
+    },
+    {
+        "model": "competition.team",
+        "pk": 3,
+        "fields": {
+            "name": "Team C",
+            "code": "CCC",
+            "sport": 1
+        }
+    },
+    {
+        "model": "competition.team",
+        "pk": 4,
+        "fields": {
+            "name": "Team D",
+            "code": "DDD",
+            "sport": 1
+        }
+    },
+    {
+        "model": "competition.team",
+        "pk": 5,
+        "fields": {
+            "name": "Team F",
+            "code": "FFF",
+            "sport": 1 
+        } 
+    },
+    {
+        "model": "competition.team",
+        "pk": 6,
+        "fields": {
+            "name": "Team G",
+            "code": "GGG",
+            "sport": 1 
+        } 
+    },
+    {
+        "model": "competition.team",
+        "pk": 7,
+        "fields": {
+            "name": "Team H",
+            "code": "HHH",
+            "sport": 1 
+        } 
+    },
+    {
+        "model": "competition.team",
+        "pk": 8,
+        "fields": {
+            "name": "Team I",
+            "code": "III",
+            "sport": 1 
+        } 
+    },
+    {
+        "model": "competition.team",
+        "pk": 9,
+        "fields": {
+            "name": "Team J",
+            "code": "JJJ",
+            "sport": 1 
+        } 
+    }
+]

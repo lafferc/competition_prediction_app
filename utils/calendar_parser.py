@@ -113,7 +113,8 @@ if __name__ == "__main__" :
                         action="store_true",
                         help="Output a team,code csv file from all the matches")
     parser.add_argument("--regx",
-                        default=g_summary_re)
+                        default=g_summary_re,
+                        help="RegEx to used on Event summary to get team details, default '%s'" % g_summary_re)
     parser.add_argument("--country",
                         default=False,
                         action="store_true",

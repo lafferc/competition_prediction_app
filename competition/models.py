@@ -1,4 +1,4 @@
-from django.db import models, IntegrityError
+from django.db import models, IntegrityError, transaction
 from django.db.models import Avg, Max
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -41,8 +41,10 @@ class Sport(models.Model):
         self.add_teams = None
         super(Sport, self).save(*args, **kwargs)
 
-        if not csv_file:
-            return
+        if csv_file:
+            self.handle_teams_upload(csv_file)
+
+    def handle_teams_upload(self, csv_file):
 
         io_file = csv_file.read().decode('utf-8')
 
@@ -51,9 +53,10 @@ class Sport(models.Model):
         for row in reader:
             try:
                 row['sport'] = self
-                Team(**row).save()
-            except IntegrityError:
-                g_logger.exception("Failed to add team")
+                with transaction.atomic():
+                    Team(**row).save()
+            except IntegrityError as e:
+                g_logger.error(f"Failed to add team({row['name']}, {row['code']}) -- {e}")
 
 
 class Team(models.Model):
@@ -210,9 +213,10 @@ class Tournament(models.Model):
 
         super(Tournament, self).save(*args, **kwargs)
 
-        if not csv_file:
-            return
+        if csv_file:
+            self.handle_match_upload(csv_file)
 
+    def handle_match_upload(self, csv_file):
         io_file = csv_file.read().decode('utf-8')
 
         g_logger.info("handle_match_upload for %s csv:%s"
@@ -238,10 +242,10 @@ class Tournament(models.Model):
                 else:
                     row['away_team'] = self.find_team(row['away_team'])
                     row['away_team_winner_of'] = None
-                # with transaction.atomic():
-                Match(**row).save()
-            except (IntegrityError, ValidationError, Team.DoesNotExist, Match.DoesNotExist):
-                g_logger.exception("Failed to add match")
+                with transaction.atomic():
+                    Match(**row).save()
+            except (IntegrityError, ValidationError, Team.DoesNotExist, Match.DoesNotExist) as e:
+                g_logger.error(f"Failed to add match {row} -- {e}")
 
     class Meta:
         permissions = (
@@ -509,6 +513,7 @@ class Prediction(PredictionBase):
 
     class Meta:
         unique_together = ('user', 'match',)
+        ordering = ['-match__kick_off', '-match__match_id']
 
 
 class Benchmark(Predictor):
@@ -621,3 +626,5 @@ class BenchmarkPrediction(PredictionBase):
 
     class Meta:
         unique_together = ('benchmark', 'match',)
+        ordering = ['-match__kick_off', '-match__match_id']
+

@@ -49,7 +49,7 @@ class MemberViewTest(TestCase):
 
         sport = Sport.objects.create(name='sport')
         cls.tourn = Tournament.objects.create(name='active_tourn', sport=sport, state=Tournament.ACTIVE)
-        with open('member/test_logo.png', 'rb') as rawfile:
+        with open('test/test_logo.png', 'rb') as rawfile:
             logo = SimpleUploadedFile('logo.png', content=rawfile.read())
         cls.org = Organisation.objects.create(name="Test", logo=logo)
         cls.comp = Competition.objects.create(organisation=cls.org, tournament=cls.tourn)

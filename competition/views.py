@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.db.models import Q
 from django.utils import timezone
@@ -53,12 +53,9 @@ def submit(request, slug):
 
     fixture_list = fixture_list.exclude(pk__in=predicted_matches)
 
-    paginator = Paginator(fixture_list, 10)
+    paginator = Paginator(fixture_list, 10, orphans=3)
     page = request.GET.get('page')
-    try:
-        fixture_list = paginator.page(page)
-    except (PageNotAnInteger, EmptyPage):
-        fixture_list = paginator.page(1)
+    fixture_list = paginator.get_page(page)
 
     current_site = get_current_site(request)
     template = loader.get_template('submit.html')
@@ -95,7 +92,7 @@ def predictions(request, slug):
                                                         match__tournament=tournament,
                                                         match__kick_off__lt=timezone.now(),
                                                         match__postponed=False
-                                                        ).order_by('-match__kick_off')
+                                                        )
                 other_user = other_user.profile.get_name()
         except User.DoesNotExist:
             g_logger.debug("User(%s) tried to look at %s's predictions but '%s' does not exist"
@@ -109,7 +106,7 @@ def predictions(request, slug):
         user_score = Participant.objects.get(user=request.user, tournament=tournament).score
         predictions = Prediction.objects.filter(user=request.user,
                                                 match__tournament=tournament
-                                                ).order_by('-match__kick_off')
+                                                )
 
     current_site = get_current_site(request)
     template = loader.get_template('predictions.html')
@@ -142,12 +139,9 @@ def table(request, slug):
         competitions = None
 
     participant_list = Participant.objects.filter(tournament=tournament).order_by('score')
-    paginator = Paginator(participant_list, 20)
+    paginator = Paginator(participant_list, 20, orphans=5)
     page = request.GET.get('page')
-    try:
-        predictors = paginator.page(page)
-    except (PageNotAnInteger, EmptyPage):
-        predictors = paginator.page(1)
+    predictors = paginator.get_page(page)
 
     leaderboard = []
     for predictor in predictors:
@@ -155,7 +149,7 @@ def table(request, slug):
                             predictor.get_name(),
                             predictor.score,
                             predictor.margin_per_match,
-                            predictor.get_predictions().filter(match__score__isnull=False).order_by('-match__kick_off')[:5]
+                            predictor.get_predictions().filter(match__score__isnull=False)[:5]
                             ))
 
     current_site = get_current_site(request)
@@ -185,12 +179,9 @@ def org_table(request, slug, org_name):
         raise Http404("Organisation does not exist")
 
     participant_list = comp.participants.order_by('score')
-    paginator = Paginator(participant_list, 20)
+    paginator = Paginator(participant_list, 20, orphans=5)
     page = request.GET.get('page')
-    try:
-        participants = paginator.page(page)
-    except (PageNotAnInteger, EmptyPage):
-        participants = paginator.page(1)
+    participants = paginator.get_page(page)
 
     current_site = get_current_site(request)
     template = loader.get_template('org_table.html')
@@ -335,11 +326,8 @@ def match(request, match_pk):
             else:
                 prediction_list = match.prediction_set.all().order_by('score')
 
-        paginator = Paginator(prediction_list, 20)
-        try:
-            predictions = paginator.page(request.GET.get('page'))
-        except (PageNotAnInteger, EmptyPage):
-            predictions = paginator.page(1)
+        paginator = Paginator(prediction_list, 20, orphans=5)
+        predictions = paginator.get_page(request.GET.get('page'))
     else:
         predictions = None
 
@@ -380,12 +368,9 @@ def benchmark_table(request, slug):
                                benchmark_list),
                          key=lambda obj: obj.score or 0)
 
-    paginator = Paginator(sorted_list, 20)
+    paginator = Paginator(sorted_list, 20, orphans=5)
     page = request.GET.get('page')
-    try:
-        predictors = paginator.page(page)
-    except (PageNotAnInteger, EmptyPage):
-        predictors = paginator.page(1)
+    predictors = paginator.get_page(page)
 
     leaderboard = []
     for predictor in predictors:
@@ -393,7 +378,7 @@ def benchmark_table(request, slug):
                             predictor.get_name(),
                             predictor.score,
                             predictor.margin_per_match,
-                            predictor.get_predictions().filter(match__score__isnull=False).order_by('-match__kick_off')[:5]
+                            predictor.get_predictions().filter(match__score__isnull=False)[:5]
                             ))
 
     current_site = get_current_site(request)
@@ -419,7 +404,7 @@ def benchmark(request, benchmark_pk):
 
     predictions = benchmark.benchmarkprediction_set.filter(
         match__kick_off__lt=timezone.now(),
-        match__postponed=False).order_by('-match__kick_off')
+        match__postponed=False)
 
     current_site = get_current_site(request)
     template = loader.get_template('predictions.html')

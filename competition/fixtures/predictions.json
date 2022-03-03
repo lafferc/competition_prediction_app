@@ -1,48 +1,5 @@
 [
     {
-        "model": "competition.sport",
-        "pk": 1,
-        "fields": {
-            "name": "sport"
-        }
-    },
-    {
-        "model": "competition.team",
-        "pk": 1,
-        "fields": {
-            "name": "team A",
-            "code": "AAA",
-            "sport": 1
-        }
-    },
-    {
-        "model": "competition.team",
-        "pk": 2,
-        "fields": {
-            "name": "team B",
-            "code": "BBB",
-            "sport": 1
-        }
-    },
-    {
-        "model": "competition.team",
-        "pk": 3,
-        "fields": {
-            "name": "team C",
-            "code": "CCC",
-            "sport": 1
-        }
-    },
-    {
-        "model": "competition.team",
-        "pk": 4,
-        "fields": {
-            "name": "team D",
-            "code": "DDD",
-            "sport": 1
-        }
-    },
-    {
         "model": "competition.tournament",
         "pk": 2,
         "fields": {
@@ -242,5 +199,4 @@
         }
     }
 ]
-
 
