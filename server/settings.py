@@ -186,9 +186,9 @@ if DEBUG:
     EMAIL_HOST_PASSWORD = ''
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 else: # !DEBUG
-    EMAIL_USE_TLS = True
-    EMAIL_HOST = 'smtp.gmail.com'
-    EMAIL_PORT = 587
+    EMAIL_USE_TLS = os.getenv('DJANGO_EMAIL_TLS', 'False') in ['True', 'true']
+    EMAIL_HOST = os.getenv('DJANGO_EMAIL_HOST', None)
+    EMAIL_PORT = os.getenv('DJANGO_EMAIL_PORT', 587)
     EMAIL_HOST_USER = os.getenv('DJANGO_EMAIL_USER', None)
     EMAIL_HOST_PASSWORD = os.getenv('DJANGO_EMAIL_PASS', None)
     DEFAULT_FROM_EMAIL = os.getenv('DJANGO_EMAIL_USER', None)
