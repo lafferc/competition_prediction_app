@@ -45,17 +45,25 @@ def matches_to_csv(matches, file_name):
             writer.writerow(row)
 
 
-def events_to_matches(events, summary_re=g_summary_re):
+def events_to_matches(events, summary_re=g_summary_re, team_list=None):
     rows = []
     curr_id = 1
     for event in events:
         s = re.search(summary_re, event["SUMMARY"])
         if s is None:
             continue
+        home = s.group(1).strip()
+        away = s.group(2).strip()
+        if team_list is not None:
+            if home not in team_list:
+                continue
+            if away not in team_list:
+                continue
+
         row = {
            'match_id': curr_id,
-           'home_team': s.group(1).strip(),
-           'away_team': s.group(2).strip(),
+           'home_team': home,
+           'away_team': away,
            'kick_off': datetime.datetime.strptime(event["DTSTART"], "%Y%m%dT%H%M%SZ")
         }
         rows.append(row)
@@ -119,6 +127,8 @@ if __name__ == "__main__" :
                         default=False,
                         action="store_true",
                         help="Use pycountry to add code to teams file")
+    parser.add_argument("--team_list",
+                        help="Only include matches when both teams are in this list")
 
     args = parser.parse_args()
 
@@ -126,10 +136,13 @@ if __name__ == "__main__" :
         print(args.regx)
     events = parse_events(args.in_filename, args.debug)
 
+    team_list = None
+    if args.team_list:
+        team_list = args.team_list.split(',')
+
+    matches = events_to_matches(events, args.regx, team_list)
     if args.teams:
-        # events_to_teams(events, args.out_filename, args.regx)
-        matches = events_to_matches(events, args.regx)
         teams = matches_to_teams(matches)
         teams_to_csv(teams, args.out_filename, args.country)
     else:
-        events_to_csv(events, args.out_filename, args.regx)
+        matches_to_csv(matches, args.out_filename)
