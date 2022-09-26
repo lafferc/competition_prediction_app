@@ -1,6 +1,7 @@
 import re
 import csv
 import datetime
+import pytz
 
 g_summary_re = "([\w ]+) [vV]s? ([\w ]+).*"
 
@@ -64,7 +65,10 @@ def events_to_matches(events, summary_re=g_summary_re, team_list=None):
            'match_id': curr_id,
            'home_team': home,
            'away_team': away,
-           'kick_off': datetime.datetime.strptime(event["DTSTART"], "%Y%m%dT%H%M%SZ")
+           'kick_off': datetime.datetime.strptime(
+               event["DTSTART"],
+               "%Y%m%dT%H%M%SZ"
+               ).astimezone(pytz.utc)
         }
         rows.append(row)
         curr_id += 1
