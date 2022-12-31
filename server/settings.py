@@ -177,6 +177,8 @@ LOGGING = {
     },
 }
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 # Email settings
 if DEBUG:
     EMAIL_USE_TLS = False
