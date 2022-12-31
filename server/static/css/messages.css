@@ -13,15 +13,15 @@ ul.messagelist li {
     margin: 0 0 3px 0;
     border-bottom: 1px solid #ddd;
     color: #666;
-    background: #dfd url(../admin/img/icon_success.gif) 5px .3em no-repeat;
+    background: #dfd url(../admin/img/icon-yes.svg) 5px .3em no-repeat;
 }
 
 ul.messagelist li.warning {
-    background: #ffc url(../admin/img/icon_alert.gif) 5px .3em no-repeat;
+    background: #ffc url(../admin/img/icon-alert.svg) 5px .3em no-repeat;
 }
 
 ul.messagelist li.error {
-    background: #ffefef url(../admin/img/icon_error.gif) 5px .3em no-repeat;
+    background: #ffefef url(../admin/img/icon-no.svg) 5px .3em no-repeat;
 }
 
 .errornote {
