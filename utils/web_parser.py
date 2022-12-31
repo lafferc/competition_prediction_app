@@ -39,7 +39,7 @@ def add_match(match):
         match_by_str[" / ".join(perm)] = match
 
 
-def parse_matches(soup, rows, comps, curr_id=1, tz_delta=None, debug=False):
+def parse_matches(soup, rows, comps, curr_id=1, tz_info=None, debug=False):
     for match_li in soup.find_all("li"):
         if "football" not in match_li["class"]:
             if debug:
@@ -82,10 +82,10 @@ def parse_matches(soup, rows, comps, curr_id=1, tz_delta=None, debug=False):
                 time = span.text.strip()
                 if ":" not in time:
                     time = "12:00"
-                if tz_delta is not None:
-                    row['kick_off'] = datetime.datetime.strptime(' '.join([date, time]), "%Y-%m-%d %H:%M") + tz_delta
-                else:
-                    row['kick_off'] = datetime.datetime.strptime(' '.join([date, time]), "%Y-%m-%d %H:%M")
+                row['kick_off'] = datetime.datetime.strptime(
+                        ' '.join([date, time]),
+                        "%Y-%m-%d %H:%M"
+                        ).astimezone(tz_info)
 
         if debug:
             print("Adding match %r" % row)
@@ -112,9 +112,9 @@ if __name__ == "__main__" :
     # parser.add_argument("--teams",
     #                     default=False,
     #                     action="store_true")
-    parser.add_argument("--tz_delta",
-                        type=int,
-                        default=0)
+    # parser.add_argument("--tz_delta",
+    #                     type=int,
+    #                     default=0)
     parser.add_argument("--date",
                         help='date to search from e.g. 1-1-2020, default today',
                         type=str)
@@ -129,7 +129,6 @@ if __name__ == "__main__" :
 
     args = parser.parse_args()
 
-    tz_diff = datetime.timedelta(hours=args.tz_delta)
     next_id = args.start_id;
     if args.date is None:
         start_date = datetime.datetime.now().date()
@@ -151,6 +150,6 @@ if __name__ == "__main__" :
         page = urlopen(url % date)
         soup = BeautifulSoup(page, features="html.parser")
 
-        next_id = parse_matches(soup, matches, args.comps, next_id, tz_diff, debug=args.debug)
+        next_id = parse_matches(soup, matches, args.comps, next_id, debug=args.debug)
 
     matches_to_csv(matches, args.out_filename)

@@ -19,6 +19,9 @@ install:
 update:
 	echo "Upgrading to " `cat VERSION`
 	service @webserver@ stop
+	echo "backing up config.db to backups/config_backup_`date '+%Y%m%d'`.db"
+	mkdir -p backups/
+	cp $(target_dir)/config.db backups/config_backup_`date '+%Y%m%d'`.db
 	pip3 install -r requirements.txt
 	rsync -rv --exclude=".*" --exclude="config.db" . $(target_dir)
 	$(target_dir)/manage.py collectstatic --noinput
