@@ -3,6 +3,10 @@
     vertical-align: top;
 }
 
+.matches_today ul, .matches_tomorrow ul {
+    list-style: none;
+}
+
 .match_no_prediction {
     content: url(../admin/img/icon-alert.svg);
 }
@@ -13,4 +17,22 @@
     display:block;
     margin-left: auto;
     margin-right: auto;
+}
+
+div.live_tournaments ul {
+    list-style: none;
+    padding-inline-start: 0px;
+}
+div.live_tournaments li {
+    background-color: #eee;
+    margin-top: 0.5em;
+    text-align: center;
+}
+div.live_tournaments li:first-of-type {
+    margin-top:0px;
+}
+div.live_tournaments a {
+    display: block;
+    text-decoration:none;
+    font-size: 1.5em;
 }
