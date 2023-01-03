@@ -2,6 +2,7 @@ import re
 import csv
 import datetime
 import pytz
+import logging
 
 g_summary_re = "([\w ]+) [vV]s? ([\w ]+).*"
 
@@ -13,8 +14,7 @@ def parse_events(file_name, debug=False):
             line = line.strip()
             if not len(line):
                continue
-            if debug:
-                print(line)
+            logging.debug(line)
             if "BEGIN:VEVENT" in line:
                event = {}
             elif event is None:
@@ -137,7 +137,9 @@ if __name__ == "__main__" :
     args = parser.parse_args()
 
     if args.debug:
-        print(args.regx)
+        logging.basicConfig(level=logging.DEBUG)
+    logging.debug(args.regx)
+
     events = parse_events(args.in_filename, args.debug)
 
     team_list = None
