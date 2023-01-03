@@ -182,12 +182,18 @@
     <p>You cannot submit a prediction for a match after it has started. A draw
     will automatically added for any missed/late predictions. These predictions
     will <u>not</u> receive the bonus.</p> 
-{% if TOURNAMENT.draw_definition == "normal_time" %}
-    <p>A match is considered a draw if both teams are level at the end of normal time.
-    Extra/additional time is not counted. Shootouts are not counted.</p>
-{% elif TOURNAMENT.draw_definition == "extra_time" %}
-    <p>If a match has extra/additional time, the match is considered a draw
-    after all extra/additional time has been played. Shootouts are not counted.</p>
+{% if TOURNAMENT.draw_definition %}
+    <p>
+    {% if TOURNAMENT.draw_definition == "normal_time" %}
+        A match is considered a draw if both teams are level at the end of normal time.
+        {{ TOURNAMENT.sport.extra_time_name|title }} is not counted.
+    {% elif TOURNAMENT.draw_definition == "extra_time" %}
+        A match considered a draw after {{ TOURNAMENT.sport.extra_time_name }} has been played.
+    {% endif %}
+    {% if TOURNAMENT.sport.knockout_decider_name %}
+        {{ TOURNAMENT.sport.knockout_decider_name|title }} is not counted.
+    {% endif %}
+    </p>
 {% endif %}
 {% if TOURNAMENT.additional_rules %}
     {{ TOURNAMENT.additional_rules|linebreaks }}

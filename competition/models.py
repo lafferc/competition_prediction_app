@@ -32,6 +32,8 @@ class Sport(models.Model):
     scoring_unit = models.CharField(max_length=50, default="point")
     match_start_verb = models.CharField(max_length=50, default="Kick Off")
     add_teams = models.FileField(null=True, blank=True)
+    extra_time_name = models.CharField(max_length=50, default="extra time")
+    knockout_decider_name = models.CharField(max_length=50, default="penalty shootout", blank=True)
 
     def __str__(self):
         return self.name
