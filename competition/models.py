@@ -244,6 +244,8 @@ class Tournament(models.Model):
                 else:
                     row['away_team'] = self.find_team(row['away_team'])
                     row['away_team_winner_of'] = None
+                if 'start_time' in row.keys():
+                    row['kick_off'] = row.pop('start_time')
                 with transaction.atomic():
                     Match(**row).save()
             except (IntegrityError, ValidationError, Team.DoesNotExist, Match.DoesNotExist) as e:
