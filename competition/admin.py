@@ -19,18 +19,6 @@ class SportAdmin(admin.ModelAdmin):
     inlines = (TeamInline,)
 
 
-class ParticipantInline(admin.TabularInline):
-    model = Participant
-    extra = 0
-    readonly_fields = ('user', 'score', 'margin_per_match')
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
 class BenchmarkInline(admin.TabularInline):
     model = Benchmark
     extra = 0
@@ -46,7 +34,7 @@ class BenchmarkInline(admin.TabularInline):
 
 class TournamentAdmin(admin.ModelAdmin):
     list_display = ('name', 'participant_count', 'match_count')
-    inlines = (BenchmarkInline, ParticipantInline,)
+    inlines = (BenchmarkInline, )
     actions = ['pop_leaderboard', 'close_tournament',
                'open_tournament', 'archive_tournament']
     list_filter = (
