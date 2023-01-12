@@ -1,5 +1,5 @@
 from django.db import models, IntegrityError, transaction
-from django.db.models import Avg, Max
+from django.db.models import Avg, Max, Q
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
@@ -63,6 +63,7 @@ class Sport(models.Model):
 
 class Team(models.Model):
     name = models.CharField(max_length=200)
+    short_name = models.CharField(max_length=20, null=True, blank=True)
     code = models.CharField(max_length=3)
     sport = models.ForeignKey(Sport, models.CASCADE)
 
@@ -72,6 +73,7 @@ class Team(models.Model):
     class Meta:
         unique_together = ('code', 'sport',)
         unique_together = ('name', 'sport',)
+        unique_together = ('short_name', 'sport',)
 
 
 class Tournament(models.Model):
@@ -137,10 +139,7 @@ class Tournament(models.Model):
         self.update_table()
 
     def find_team(self, name):
-        try:
-            return Team.objects.get(sport=self.sport, name=name)
-        except Team.DoesNotExist:
-            return Team.objects.get(sport=self.sport, code=name)
+        return self.team_set.get(Q(name=name)|Q(code=name)|Q(short_name=name))
 
     def close(self, request):
         if self.state != Tournament.ACTIVE:
