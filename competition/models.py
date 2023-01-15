@@ -71,9 +71,9 @@ class Team(models.Model):
         return self.name
 
     class Meta:
-        unique_together = ('code', 'sport',)
-        unique_together = ('name', 'sport',)
-        unique_together = ('short_name', 'sport',)
+        unique_together = (('code', 'sport',),
+                           ('name', 'sport',),
+                           ('short_name', 'sport',))
 
 
 class Tournament(models.Model):
@@ -139,7 +139,7 @@ class Tournament(models.Model):
         self.update_table()
 
     def find_team(self, name):
-        return self.team_set.get(Q(name=name)|Q(code=name)|Q(short_name=name))
+        return self.sport.team_set.get(Q(name=name)|Q(code=name)|Q(short_name=name))
 
     def close(self, request):
         if self.state != Tournament.ACTIVE:
