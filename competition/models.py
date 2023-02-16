@@ -60,20 +60,50 @@ class Sport(models.Model):
             except IntegrityError as e:
                 g_logger.error(f"Failed to add team({row['name']}, {row['code']}) -- {e}")
 
+    def find_team(self, name):
+        return self.team_set.get(Q(name=name)|
+                                 Q(code=name)|
+                                 Q(short_name=name)|
+                                 Q(full_name=name)|
+                                 Q(alt_name=name))
+
 
 class Team(models.Model):
     name = models.CharField(max_length=200)
     short_name = models.CharField(max_length=20, null=True, blank=True)
+    full_name = models.CharField(max_length=100, null=True, blank=True)
+    alt_name = models.CharField(max_length=100, null=True, blank=True)
     code = models.CharField(max_length=3)
     sport = models.ForeignKey(Sport, models.CASCADE)
 
     def __str__(self):
         return self.name
 
+    def validate_unique(self, exclude=None):
+        def add_name_query(name):
+            return Q(name=name)| Q(code=name)| Q(short_name=name)| Q(full_name=name)| Q(alt_name=name)
+
+        q = add_name_query(self.name)
+        if self.short_name:
+            q = q | add_name_query(self.short_name)
+        if self.full_name:
+            q = q | add_name_query(self.full_name)
+        if self.alt_name:
+            q = q | add_name_query(self.alt_name)
+
+        teams = self.sport.team_set.filter(q)
+        if len(teams) > 1:
+            raise ValidationError('Name must be unique per Sport')
+
+        if len(teams) == 1 and teams[0] != self:
+            raise ValidationError('Name used by another team. Names must be unique per Sport')
+
     class Meta:
-        unique_together = (('code', 'sport',),
-                           ('name', 'sport',),
-                           ('short_name', 'sport',))
+        unique_together = (('code', 'sport'),
+                           ('name', 'sport'),
+                           ('short_name', 'sport'),
+                           ('full_name', 'sport'),
+                           ('alt_name', 'sport'))
 
 
 class Tournament(models.Model):
@@ -139,7 +169,7 @@ class Tournament(models.Model):
         self.update_table()
 
     def find_team(self, name):
-        return self.sport.team_set.get(Q(name=name)|Q(code=name)|Q(short_name=name))
+        return self.sport.find_team(name)
 
     def close(self, request):
         if self.state != Tournament.ACTIVE:
