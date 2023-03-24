@@ -9,7 +9,6 @@ import logging
 
 g_logger = logging.getLogger(__name__)
 
-
 class TeamInline(admin.TabularInline):
     model = Team
     extra = 0
@@ -267,9 +266,34 @@ class BenchmarkAdmin(admin.ModelAdmin):
                 'range_end', 'score', 'margin_per_match')}),)
 
 
+class TeamAdmin(admin.ModelAdmin):
+    model = Team
+    actions = ['merge']
+
+    def merge(self, request, queryset):
+        #TODO use confirm screen
+        g_logger.info("Attempting to merge %s", queryset)
+        primary_team = queryset[0]
+        secondary_teams = queryset[1:]
+
+        for team in secondary_teams:
+            g_logger.debug("Merging %s into %s", team, primary_team)
+
+            Match.objects.filter(home_team=team).update(home_team=primary_team)
+            Match.objects.filter(away_team=team).update(away_team=primary_team)
+
+        #TODO delete the secondary_teams
+
+
+    merge.allowed_permissions = ('change','delete')
+
+
+
+
 admin.site.register(Sport, SportAdmin)
 admin.site.register(Tournament, TournamentAdmin)
 admin.site.register(Match, MatchAdmin)
 admin.site.register(Prediction, PredictionAdmin)
 admin.site.register(Benchmark, BenchmarkAdmin)
 admin.site.register(BenchmarkPrediction)
+admin.site.register(Team, TeamAdmin)
