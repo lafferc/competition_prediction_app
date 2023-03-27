@@ -104,6 +104,7 @@ class Team(models.Model):
                            ('short_name', 'sport'),
                            ('full_name', 'sport'),
                            ('alt_name', 'sport'))
+        ordering = ["pk"]
 
 
 class Tournament(models.Model):

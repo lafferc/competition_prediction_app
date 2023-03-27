@@ -270,6 +270,9 @@ class BenchmarkAdmin(admin.ModelAdmin):
 class TeamAdmin(admin.ModelAdmin):
     model = Team
     actions = ['merge']
+    list_filter = ('sport',)
+    list_display = ('name', 'short_name', 'full_name', 'alt_name', 'code', 'sport')
+    search_fields = ['name', 'short_name', 'full_name', 'alt_name', 'code']
 
     def merge(self, request, queryset):
         #TODO use confirm screen
@@ -278,6 +281,11 @@ class TeamAdmin(admin.ModelAdmin):
         secondary_teams = queryset[1:]
 
         for team in secondary_teams:
+
+            if team.sport != primary_team.sport:
+                g_logger.error("Cannot merge teams from different sports (%s != %s)", team.sport, primary_team.sport)
+                continue
+
             g_logger.debug("Merging %s into %s", team, primary_team)
 
             Match.objects.filter(home_team=team).update(home_team=primary_team)
