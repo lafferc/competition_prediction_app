@@ -9,6 +9,7 @@ import logging
 
 g_logger = logging.getLogger(__name__)
 
+
 class TeamInline(admin.TabularInline):
     model = Team
     extra = 0
@@ -272,7 +273,7 @@ class TeamAdmin(admin.ModelAdmin):
 
     def merge(self, request, queryset):
         #TODO use confirm screen
-        g_logger.info("Attempting to merge %s", queryset)
+        g_logger.debug("Attempting to merge %s", queryset)
         primary_team = queryset[0]
         secondary_teams = queryset[1:]
 
@@ -282,7 +283,8 @@ class TeamAdmin(admin.ModelAdmin):
             Match.objects.filter(home_team=team).update(home_team=primary_team)
             Match.objects.filter(away_team=team).update(away_team=primary_team)
 
-        #TODO delete the secondary_teams
+            g_logger.debug("Deleting %s", team)
+            team.delete()
 
 
     merge.allowed_permissions = ('change','delete')
