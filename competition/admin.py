@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.db.models import Avg, Sum, F
 from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.template import loader
 from competition.models import Team, Tournament, Match, Prediction, Participant
@@ -269,19 +270,17 @@ class BenchmarkAdmin(admin.ModelAdmin):
 
 class TeamAdmin(admin.ModelAdmin):
     model = Team
-    actions = ['merge']
+    actions = ['merge', 'merge_confirm']
     list_filter = ('sport',)
     list_display = ('name', 'short_name', 'full_name', 'alt_name', 'code', 'sport')
     search_fields = ['name', 'short_name', 'full_name', 'alt_name', 'code']
 
     def merge(self, request, queryset):
         #TODO use confirm screen
-        g_logger.debug("Attempting to merge %s", queryset)
         primary_team = queryset[0]
         secondary_teams = queryset[1:]
 
         for team in secondary_teams:
-
             if team.sport != primary_team.sport:
                 g_logger.error("Cannot merge teams from different sports (%s != %s)", team.sport, primary_team.sport)
                 continue
@@ -297,7 +296,56 @@ class TeamAdmin(admin.ModelAdmin):
 
     merge.allowed_permissions = ('change','delete')
 
+    def merge_confirm(self, request, queryset):
+        primary_team = queryset[0]
+        secondary_teams = queryset[1:]
+        matches_to_modify = []
 
+        perform_action = True if 'apply' in request.POST else False
+
+        for team in secondary_teams:
+            if team.sport != primary_team.sport:
+                if perform_action:
+                    g_logger.error("Cannot merge teams from different sports (%s != %s)", team.sport, primary_team.sport)
+                continue
+
+            if perform_action:
+                # The user clicked submit on the intermediate form.
+                # Perform our update action:
+
+                g_logger.debug("Merging %s into %s", team, primary_team)
+
+                Match.objects.filter(home_team=team).update(home_team=primary_team)
+                Match.objects.filter(away_team=team).update(away_team=primary_team)
+
+                g_logger.debug("Deleting %s", team)
+                team.delete()
+
+            else:
+                matches_to_modify.extend(Match.objects.filter(home_team=team))
+                matches_to_modify.extend(Match.objects.filter(away_team=team))
+
+        if perform_action:
+            # Redirect to our admin view after our update has 
+            # completed with a nice little info message saying 
+            # our models have been updated:
+            self.message_user(request,
+                              "Merged {} teams".format(queryset.count()))
+            return HttpResponseRedirect(request.get_full_path())
+
+        context = {
+            'merge_target': primary_team,
+            'teams_to_delete': secondary_teams,
+            'matches_to_modify': matches_to_modify,
+            'opts': self.model._meta,
+            'media': self.media,
+            }
+
+        return render(request,
+                      'admin/merge_teams.html',
+                      context=context)
+
+    merge_confirm.allowed_permissions = ('change','delete')
 
 
 admin.site.register(Sport, SportAdmin)
