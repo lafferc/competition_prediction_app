@@ -16,7 +16,7 @@
 <p>
 Are you sure you want to execute this action on the selected items?
 </p>  
-
+{{team_form.as_p}}
 <h2>The following teams will be deleted and merged into {{ merge_target }}</h2>
 <input type="hidden" name="_selected_action" value="{{ merge_target.pk }}" />
 <ul>
@@ -32,7 +32,7 @@ Are you sure you want to execute this action on the selected items?
     <li>{{ match }}</li>
 {% endfor %}
 </ul>
-  <input type="hidden" name="action" value="merge_confirm" />
+  <input type="hidden" name="action" value="merge" />
   <input type="hidden" name="apply" value="Merge teams"/>
   <input type="submit" value="Yes, I'm sure">
   <a href="#" class="button cancel-link">No, take me back</a>
