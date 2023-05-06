@@ -2,6 +2,9 @@
 
 from django.db import migrations, models
 
+# Adds code into UniqueTogether for Team
+# To find any teams that fail this constraint run the following sql statement 
+# sqlite3 config.db -header "select name,code,sport_id, count(id) from competition_team group by code,sport_id having count(id) > 1;"
 
 class Migration(migrations.Migration):
 
