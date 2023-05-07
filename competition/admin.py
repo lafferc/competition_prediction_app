@@ -271,6 +271,8 @@ class BenchmarkAdmin(admin.ModelAdmin):
 
 
 class TeamEditForm(forms.ModelForm):
+    code = forms.ChoiceField(widget=forms.RadioSelect())
+
     class Meta:
         model = Team
         exclude = ("id", "sport")
@@ -294,6 +296,8 @@ class TeamAdmin(admin.ModelAdmin):
             team_form = TeamEditForm(request.POST, instance=primary_team)
         else:
             team_form = TeamEditForm(instance=primary_team)
+
+        team_form.fields['code'].choices = [(x,x) for x in queryset.values_list('code', flat=True)]
 
         for team in secondary_teams:
             if team.sport != primary_team.sport:
