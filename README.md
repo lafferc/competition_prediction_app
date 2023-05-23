@@ -7,3 +7,17 @@
 `./configure`
 
 `make install`
+
+
+## Upgrade steps
+`sudo -E make update
+
+
+## Installing dev env
+`export DJANGO_DEBUG=True`
+
+`autoconf`
+
+`./configure`
+
+`make dev`

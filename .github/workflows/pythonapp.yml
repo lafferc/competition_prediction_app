@@ -4,6 +4,8 @@ on: [push]
 
 jobs:
   build:
+    env:
+        DJANGO_DEBUG: "True"
 
     runs-on: ubuntu-latest
     strategy:

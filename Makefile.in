@@ -31,4 +31,5 @@ update:
 dev:
 	echo "Installing dev env"
 	pip3 install -r requirements_dev.txt
+	export DJANGO_DEBUG=True
 	./manage.py migrate
