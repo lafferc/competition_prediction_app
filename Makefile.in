@@ -30,5 +30,5 @@ update:
 
 dev:
 	echo "Installing dev env"
-	pip3 install -r requirements.txt
+	pip3 install -r requirements_dev.txt
 	./manage.py migrate

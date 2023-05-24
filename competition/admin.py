@@ -1,8 +1,11 @@
-from django.contrib import admin
+from django import forms
+from django.contrib import admin, messages
 from django.db.models import Avg, Sum, F
 from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.template import loader
+from django.utils.translation import gettext as _
 from competition.models import Team, Tournament, Match, Prediction, Participant
 from competition.models import Sport, Benchmark, BenchmarkPrediction
 import logging
@@ -17,18 +20,6 @@ class TeamInline(admin.TabularInline):
 
 class SportAdmin(admin.ModelAdmin):
     inlines = (TeamInline,)
-
-
-class ParticipantInline(admin.TabularInline):
-    model = Participant
-    extra = 0
-    readonly_fields = ('user', 'score', 'margin_per_match')
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request, obj=None):
-        return False
 
 
 class BenchmarkInline(admin.TabularInline):
@@ -46,7 +37,7 @@ class BenchmarkInline(admin.TabularInline):
 
 class TournamentAdmin(admin.ModelAdmin):
     list_display = ('name', 'participant_count', 'match_count')
-    inlines = (BenchmarkInline, ParticipantInline,)
+    inlines = (BenchmarkInline, )
     actions = ['pop_leaderboard', 'close_tournament',
                'open_tournament', 'archive_tournament']
     list_filter = (
@@ -279,9 +270,93 @@ class BenchmarkAdmin(admin.ModelAdmin):
                 'range_end', 'score', 'margin_per_match')}),)
 
 
+class TeamEditForm(forms.ModelForm):
+    code = forms.ChoiceField(widget=forms.RadioSelect())
+
+    class Meta:
+        model = Team
+        exclude = ("id", "sport")
+
+
+class TeamAdmin(admin.ModelAdmin):
+    model = Team
+    actions = ['merge']
+    list_filter = ('sport',)
+    list_display = ('name', 'short_name', 'full_name', 'alt_name', 'code', 'sport')
+    search_fields = ['name', 'short_name', 'full_name', 'alt_name', 'code']
+
+    def merge(self, request, queryset):
+        primary_team = queryset[0]
+        secondary_teams = queryset[1:]
+        matches_to_modify = []
+
+        perform_action = True if 'apply' in request.POST else False
+
+        if perform_action:
+            team_form = TeamEditForm(request.POST, instance=primary_team)
+        else:
+            team_form = TeamEditForm(instance=primary_team)
+
+        team_form.fields['code'].choices = [(x,x) for x in queryset.values_list('code', flat=True)]
+
+        for team in secondary_teams:
+            if team.sport != primary_team.sport:
+                if perform_action:
+                    g_logger.error("Cannot merge teams from different sports (%s != %s)", team.sport, primary_team.sport)
+                continue
+
+            if perform_action:
+                # The user clicked submit on the intermediate form.
+                # Perform our update action:
+
+                g_logger.debug("Merging %s into %s", team, primary_team)
+
+                Match.objects.filter(home_team=team).update(home_team=primary_team)
+                Match.objects.filter(away_team=team).update(away_team=primary_team)
+
+                g_logger.debug("Deleting %s", team)
+                team.delete()
+
+            else:
+                matches_to_modify.extend(Match.objects.filter(home_team=team))
+                matches_to_modify.extend(Match.objects.filter(away_team=team))
+
+        if perform_action:
+            # Update team from edit form
+            if team_form.is_valid():
+                team_form.save()
+            else:
+                g_logger.error('Failed to update Team %s', primary_team)
+                messages.error(request, _('Failed to update Team %s' % primary_team))
+
+
+            # Redirect to our admin view after our update has 
+            # completed with a nice little info message saying 
+            # our models have been updated:
+            self.message_user(request,
+                              "Merged {} teams".format(queryset.count()))
+            return HttpResponseRedirect(request.get_full_path())
+
+        context = {
+            'merge_target': primary_team,
+            'teams_to_delete': secondary_teams,
+            'matches_to_modify': matches_to_modify,
+            'opts': self.model._meta,
+            'media': self.media,
+            'team_form': team_form,
+            }
+
+        return render(request,
+                      'admin/merge_teams.html',
+                      context=context)
+
+    merge.allowed_permissions = ('change','delete')
+
+
 admin.site.register(Sport, SportAdmin)
 admin.site.register(Tournament, TournamentAdmin)
 admin.site.register(Match, MatchAdmin)
 admin.site.register(Prediction, PredictionAdmin)
 admin.site.register(Benchmark, BenchmarkAdmin)
 admin.site.register(BenchmarkPrediction)
+admin.site.register(Team, TeamAdmin)

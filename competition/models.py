@@ -1,5 +1,5 @@
 from django.db import models, IntegrityError, transaction
-from django.db.models import Avg, Max
+from django.db.models import Avg, Max, Q
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
@@ -32,6 +32,8 @@ class Sport(models.Model):
     scoring_unit = models.CharField(max_length=50, default="point")
     match_start_verb = models.CharField(max_length=50, default="Kick Off")
     add_teams = models.FileField(null=True, blank=True)
+    extra_time_name = models.CharField(max_length=50, default="extra time")
+    knockout_decider_name = models.CharField(max_length=50, default="penalty shootout", blank=True)
 
     def __str__(self):
         return self.name
@@ -58,18 +60,51 @@ class Sport(models.Model):
             except IntegrityError as e:
                 g_logger.error(f"Failed to add team({row['name']}, {row['code']}) -- {e}")
 
+    def find_team(self, name):
+        return self.team_set.get(Q(name=name)|
+                                 Q(code=name)|
+                                 Q(short_name=name)|
+                                 Q(full_name=name)|
+                                 Q(alt_name=name))
+
 
 class Team(models.Model):
     name = models.CharField(max_length=200)
+    short_name = models.CharField(max_length=20, null=True, blank=True)
+    full_name = models.CharField(max_length=100, null=True, blank=True)
+    alt_name = models.CharField(max_length=100, null=True, blank=True)
     code = models.CharField(max_length=3)
     sport = models.ForeignKey(Sport, models.CASCADE)
 
     def __str__(self):
         return self.name
 
+    def validate_unique(self, exclude=None):
+        def add_name_query(name):
+            return Q(name=name)| Q(code=name)| Q(short_name=name)| Q(full_name=name)| Q(alt_name=name)
+
+        q = add_name_query(self.name)
+        if self.short_name:
+            q = q | add_name_query(self.short_name)
+        if self.full_name:
+            q = q | add_name_query(self.full_name)
+        if self.alt_name:
+            q = q | add_name_query(self.alt_name)
+
+        teams = self.sport.team_set.filter(q)
+        if len(teams) > 1:
+            raise ValidationError('Name must be unique per Sport')
+
+        if len(teams) == 1 and teams[0] != self:
+            raise ValidationError('Name used by another team. Names must be unique per Sport')
+
     class Meta:
-        unique_together = ('code', 'sport',)
-        unique_together = ('name', 'sport',)
+        unique_together = (('code', 'sport'),
+                           ('name', 'sport'),
+                           ('short_name', 'sport'),
+                           ('full_name', 'sport'),
+                           ('alt_name', 'sport'))
+        ordering = ["pk"]
 
 
 class Tournament(models.Model):
@@ -135,10 +170,7 @@ class Tournament(models.Model):
         self.update_table()
 
     def find_team(self, name):
-        try:
-            return Team.objects.get(sport=self.sport, name=name)
-        except Team.DoesNotExist:
-            return Team.objects.get(sport=self.sport, code=name)
+        return self.sport.find_team(name)
 
     def close(self, request):
         if self.state != Tournament.ACTIVE:
@@ -242,6 +274,8 @@ class Tournament(models.Model):
                 else:
                     row['away_team'] = self.find_team(row['away_team'])
                     row['away_team_winner_of'] = None
+                if 'start_time' in row.keys():
+                    row['kick_off'] = row.pop('start_time')
                 with transaction.atomic():
                     Match(**row).save()
             except (IntegrityError, ValidationError, Team.DoesNotExist, Match.DoesNotExist) as e:

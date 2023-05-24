@@ -135,6 +135,9 @@ if __name__ == "__main__" :
     else:
         start_date = datetime.datetime.strptime(args.date, '%d-%m-%Y').date()
 
+    new_url = "https://www.gaa.ie/fixtures-results/Football/by-date/2023/6/1/30/_matches-list"
+    #                                                               YYYY/M/FD/LD
+    #      where YYYY is the year, M is the month, FD is the first day and LD is the last day (31 breaks when the month only has 30 days)
     url = "https://www.gaa.ie/fixtures-results/library/matches/1/0/0/%s/monthly/_matches-by-date"
 
     matches = []
