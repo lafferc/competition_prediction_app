@@ -565,6 +565,7 @@ class Benchmark(Predictor):
     static_value = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
     range_start = models.IntegerField(blank=True, null=True)
     range_end = models.IntegerField(blank=True, null=True)
+    can_receive_bonus = models.BooleanField(blank=True, default=True)
 
     def __str__(self):
         if self.prediction_algorithm == self.STATIC:
@@ -657,6 +658,11 @@ class BenchmarkPrediction(PredictionBase):
 
     def get_predictor(self):
         return self.benchmark
+
+    def bonus(self, result):
+        if self.benchmark.can_receive_bonus is False:
+            return 0
+        return super().bonus(result)
 
     class Meta:
         unique_together = ('benchmark', 'match',)
