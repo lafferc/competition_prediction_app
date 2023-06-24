@@ -31,4 +31,14 @@ update:
 dev:
 	echo "Installing dev env"
 	pip3 install -r requirements_dev.txt
+	$(MAKE) check_debug
 	./manage.py migrate
+
+
+check_debug:
+	@if [ -z "$$DJANGO_DEBUG" ]; then \
+	    echo "Variable DJANGO_DEBUG is not set."; \
+	    exit 1; \
+	else \
+	    echo "Variable DJANGO_DEBUG is set to: $$DJANGO_DEBUG"; \
+	fi
