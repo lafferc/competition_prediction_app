@@ -236,14 +236,16 @@ class BenchmarkAdmin(admin.ModelAdmin):
         (None, {
             'fields': (
                 'name', 'tournament', 'prediction_algorithm',
-                'static_value', 'range_start', 'range_end')
+                'static_value', 'range_start', 'range_end',
+                'can_receive_bonus')
         }),
     )
 
     def get_readonly_fields(self, request, obj):
         if obj:
             return ('prediction_algorithm', 'static_value', 'range_start',
-                    'range_end', 'tournament', 'score', 'margin_per_match')
+                    'range_end', 'tournament', 'score', 'margin_per_match',
+                    'can_receive_bonus')
         return ('score', 'margin_per_match')
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -259,15 +261,15 @@ class BenchmarkAdmin(admin.ModelAdmin):
         if obj.prediction_algorithm == Benchmark.STATIC:
             return ((None, {'fields': (
                 'name', 'tournament', 'prediction_algorithm', 'static_value',
-                'score', 'margin_per_match')}),)
+                'score', 'margin_per_match', 'can_receive_bonus')}),)
         elif obj.prediction_algorithm == Benchmark.MEAN:
             return ((None, {'fields': (
                 'name', 'tournament', 'prediction_algorithm', 'score',
-                'margin_per_match')}),)
+                'margin_per_match', 'can_receive_bonus')}),)
         elif obj.prediction_algorithm == Benchmark.RANDOM:
             return ((None, {'fields': (
                 'name', 'tournament', 'prediction_algorithm', 'range_start',
-                'range_end', 'score', 'margin_per_match')}),)
+                'range_end', 'score', 'margin_per_match', 'can_receive_bonus')}),)
 
 
 class TeamEditForm(forms.ModelForm):

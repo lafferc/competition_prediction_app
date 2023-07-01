@@ -10,7 +10,7 @@
 
 
 ## Upgrade steps
-`sudo -E make update
+`sudo -E make update`
 
 
 ## Installing dev env

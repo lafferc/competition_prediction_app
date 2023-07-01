@@ -2,7 +2,7 @@ target_dir = @target_dir@
 media_dir = @media_dir@
 
 install:
-	echo "Installing " `cat VERSION`
+	@echo "Installing " `cat VERSION`
 	service @webserver@ stop
 	pip3 install -r requirements.txt
 	mkdir $(target_dir)
@@ -17,9 +17,9 @@ install:
 	service @webserver@ start
 
 update:
-	echo "Upgrading to " `cat VERSION`
+	@echo "Upgrading to " `cat VERSION`
 	service @webserver@ stop
-	echo "backing up config.db to backups/config_backup_`date '+%Y%m%d'`.db"
+	@echo "backing up config.db to backups/config_backup_`date '+%Y%m%d'`.db"
 	mkdir -p backups/
 	cp $(target_dir)/config.db backups/config_backup_`date '+%Y%m%d'`.db
 	pip3 install -r requirements.txt
@@ -29,6 +29,16 @@ update:
 	service @webserver@ start
 
 dev:
-	echo "Installing dev env"
+	@echo "Installing dev env"
 	pip3 install -r requirements_dev.txt
+	$(MAKE) check_debug
 	./manage.py migrate
+
+
+check_debug:
+	@if [ -z "$$DJANGO_DEBUG" ]; then \
+	    echo "Variable DJANGO_DEBUG is not set."; \
+	    exit 1; \
+	else \
+	    echo "Variable DJANGO_DEBUG is set to: $$DJANGO_DEBUG"; \
+	fi
