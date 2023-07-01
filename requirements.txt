@@ -2,4 +2,4 @@ django==3.2.18
 pytz==2018.4
 pillow==8.4
 django-recaptcha==2.0.6
-django-allauth==0.43.0
+django-allauth==0.46.0
