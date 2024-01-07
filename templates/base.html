@@ -1,14 +1,15 @@
 {% load static %}
+<!doctype html>
+<html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script> <!-- only for dev -->
     <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
     <script type="text/javascript">
     $(document).bind("mobileinit", function () {
             $.mobile.ajaxEnabled = false;
             });
     </script>
-    <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/messages.css' %}" type="text/css">
     <script src="https://unpkg.com/htmx.org@1.6.1"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -75,3 +76,4 @@
 {% endif %}
     </div><!-- /page -->
 </body>
+</html>
