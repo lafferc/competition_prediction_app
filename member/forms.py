@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import UsernameField
 from .models import Profile
 from competition.models import Tournament
 from allauth.socialaccount.models import SocialApp
@@ -26,3 +27,13 @@ class AnnouncementForm(forms.Form):
 
 class SocialProviderForm(forms.Form):
     social_provider = forms.ModelChoiceField(queryset=SocialApp.objects.all(), required=False)
+
+
+class UserMergeForm(forms.ModelForm):
+    username = forms.ChoiceField()
+    first_name = forms.ChoiceField(required=False)
+    last_name = forms.ChoiceField(required=False)
+    email = forms.ChoiceField(label="Primary Email")
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email']

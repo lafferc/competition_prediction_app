@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from allauth.socialaccount.models import SocialApp
 from member.models import Profile, Organisation, Competition, Ticket
+from member.forms import UserMergeForm
 
 import logging
 
@@ -119,6 +120,11 @@ class CustomUserAdmin(UserAdmin):
                               "Merged {} users".format(queryset.count()))
             return HttpResponseRedirect(request.get_full_path())
 
+        user_form = UserMergeForm(request.POST, instance=queryset[0])
+        user_form.fields['username'].choices = [(value,value) for value in queryset.values_list('username', flat=True) if value]
+        user_form.fields['first_name'].choices = [(value,value) for value in queryset.values_list('first_name', flat=True) if value]
+        user_form.fields['last_name'].choices = [(value,value) for value in queryset.values_list('last_name', flat=True) if value]
+        user_form.fields['email'].choices = [(value,value) for value in queryset.values_list('email', flat=True) if value]
         tourn_dict = {}
         for user in queryset:
             for tourn in user.tournament_set.all():
@@ -133,6 +139,7 @@ class CustomUserAdmin(UserAdmin):
             'tourn_dict': tourn_dict,
             'opts': self.model._meta,
             'media': self.media,
+            'user_form': user_form,
             }
 
         return render(request,
