@@ -1,7 +1,11 @@
 table, th, td {
-    border: 1px solid black;;
+    border: 1px solid black;
+    border-collapse: collapse;
+    padding: 2px;
     width: auto;
 }
+
+tr:nth-child(even) {background-color: #eee;}
 
 th.prediction_correct {
     border: 0;

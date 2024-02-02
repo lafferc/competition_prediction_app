@@ -1,5 +1,5 @@
 match_id,home_team,away_team,kick_off
-1,Team A,Team B,2022-02-15 20:00:00
-2,Team C,Team D,2022-02-15 20:00:00
-3,Team E,Team F,2022-02-16 20:00:00
-4,Team G,Team H,2022-02-16 20:00:00
+1,Team A,Team B,2022-02-15 20:00:00+00:00
+2,Team C,Team D,2022-02-15 20:00:00+00:00
+3,Team E,Team F,2022-02-16 20:00:00+00:00
+4,Team G,Team H,2022-02-16 20:00:00+00:00

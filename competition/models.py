@@ -1,5 +1,5 @@
 from django.db import models, IntegrityError, transaction
-from django.db.models import Avg, Max
+from django.db.models import Avg, Max, Q
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
@@ -9,6 +9,8 @@ from django.urls import reverse
 from django.template.defaultfilters import slugify
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.text import capfirst, get_text_list
+from django.utils.translation import gettext_lazy as _
 from io import StringIO
 import logging
 import csv
@@ -32,6 +34,8 @@ class Sport(models.Model):
     scoring_unit = models.CharField(max_length=50, default="point")
     match_start_verb = models.CharField(max_length=50, default="Kick Off")
     add_teams = models.FileField(null=True, blank=True)
+    extra_time_name = models.CharField(max_length=50, default="extra time")
+    knockout_decider_name = models.CharField(max_length=50, default="penalty shootout", blank=True)
 
     def __str__(self):
         return self.name
@@ -58,18 +62,80 @@ class Sport(models.Model):
             except IntegrityError as e:
                 g_logger.error(f"Failed to add team({row['name']}, {row['code']}) -- {e}")
 
+    def find_team(self, name):
+        return self.team_set.get(Q(name=name)|
+                                 Q(code=name)|
+                                 Q(short_name=name)|
+                                 Q(full_name=name)|
+                                 Q(alt_name=name))
+
 
 class Team(models.Model):
     name = models.CharField(max_length=200)
+    short_name = models.CharField(max_length=20, null=True, blank=True)
+    full_name = models.CharField(max_length=100, null=True, blank=True)
+    alt_name = models.CharField(max_length=100, null=True, blank=True)
     code = models.CharField(max_length=3)
     sport = models.ForeignKey(Sport, models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.sport}"
+
+    def validate_unique(self, exclude=None):
+
+        super().validate_unique(exclude)
+
+        def add_name_query(name):
+            return Q(name=name)| Q(code=name)| Q(short_name=name)| Q(full_name=name)| Q(alt_name=name)
+
+        name_checks = [
+                ('name', self.name, False),
+                ('short_name', self.short_name, True),
+                ('full_name', self.full_name, True),
+                ('alt_name', self.alt_name, True)]
+
+        errors = {}
+        for field_name, name, optional in name_checks:
+            if optional and name is None:
+                continue
+
+            q = Q(name=name)| Q(code=name)| Q(short_name=name)| Q(full_name=name)| Q(alt_name=name)
+
+            qs = self.sport.team_set.filter(q)
+
+            if not self._state.adding and self.pk is not None:
+                qs = qs.exclude(pk=self.pk)
+
+            if qs.exists():
+                opts = self._meta
+                params = {
+                        'model': self,
+                        'model_class': self.__class__,
+                        'model_name': capfirst(opts.verbose_name),
+                        'unique_check': [field_name],
+                        }
+
+                field_labels = "name or short_name or full_name or alt_name"
+                params['field_labels'] = field_labels
+
+                errors.setdefault(field_name, []).append(
+                        ValidationError(
+                            message=_("%(model_name)s with this %(field_labels)s already exists."),
+                            code='unique',
+                            params=params,
+                            )
+                        )
+
+        if errors:
+            raise ValidationError(errors)
 
     class Meta:
-        unique_together = ('code', 'sport',)
-        unique_together = ('name', 'sport',)
+        unique_together = (('code', 'sport'),
+                           ('name', 'sport'),
+                           ('short_name', 'sport'),
+                           ('full_name', 'sport'),
+                           ('alt_name', 'sport'))
+        ordering = ["pk"]
 
 
 class Tournament(models.Model):
@@ -135,10 +201,7 @@ class Tournament(models.Model):
         self.update_table()
 
     def find_team(self, name):
-        try:
-            return Team.objects.get(sport=self.sport, name=name)
-        except Team.DoesNotExist:
-            return Team.objects.get(sport=self.sport, code=name)
+        return self.sport.find_team(name)
 
     def close(self, request):
         if self.state != Tournament.ACTIVE:
@@ -242,6 +305,8 @@ class Tournament(models.Model):
                 else:
                     row['away_team'] = self.find_team(row['away_team'])
                     row['away_team_winner_of'] = None
+                if 'start_time' in row.keys():
+                    row['kick_off'] = row.pop('start_time')
                 with transaction.atomic():
                     Match(**row).save()
             except (IntegrityError, ValidationError, Team.DoesNotExist, Match.DoesNotExist) as e:
@@ -457,7 +522,7 @@ class PredictionBase(models.Model):
     prediction = models.DecimalField(default=0, max_digits=5, decimal_places=2)
     score = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
     margin = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
-    correct = models.NullBooleanField()
+    correct = models.BooleanField(null=True)
 
     def calc_score(self, result):
         self.margin = abs(result - self.prediction)
@@ -531,6 +596,7 @@ class Benchmark(Predictor):
     static_value = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
     range_start = models.IntegerField(blank=True, null=True)
     range_end = models.IntegerField(blank=True, null=True)
+    can_receive_bonus = models.BooleanField(blank=True, default=True)
 
     def __str__(self):
         if self.prediction_algorithm == self.STATIC:
@@ -623,6 +689,11 @@ class BenchmarkPrediction(PredictionBase):
 
     def get_predictor(self):
         return self.benchmark
+
+    def bonus(self, result):
+        if self.benchmark.can_receive_bonus is False:
+            return 0
+        return super().bonus(result)
 
     class Meta:
         unique_together = ('benchmark', 'match',)

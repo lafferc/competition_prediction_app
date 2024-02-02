@@ -1,3 +1,6 @@
+# Custom
+backups/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -23,6 +26,10 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+Makefile
+autom4te.cache/
+config.status
+configure
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
