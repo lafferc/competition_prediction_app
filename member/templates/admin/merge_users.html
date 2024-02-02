@@ -16,7 +16,6 @@
 <p>
 Are you sure you want to execute this action on the selected items?
 </p>  
-{{ user_form.as_p }}
 <table>
     <tr>
         <th>username</th>
@@ -37,6 +36,7 @@ Are you sure you want to execute this action on the selected items?
         <td>{{ user.last_name }}</td>
         <td>{{ user.email }}</td>
         <td>{{ user.profile.display_name_format }}</td>
+        <td>{{ user.profile.dob }}</td>
         <td>{{ user.profile.social_display_name_format }}</td>
         <td>{{ user.profile.can_receive_emails }}</td>
         <td>{{ user.profile.email_on_new_competition }}</td>
@@ -45,6 +45,8 @@ Are you sure you want to execute this action on the selected items?
     </tr>
     {% endfor %}
 </table>
+{{ user_form.as_p }}
+{{ profile_form.as_p }}
 <h2> List of Users and emails</h2>
 <ul>
   {% for user in users %}

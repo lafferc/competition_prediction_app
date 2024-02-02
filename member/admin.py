@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from allauth.socialaccount.models import SocialApp
 from member.models import Profile, Organisation, Competition, Ticket
-from member.forms import UserMergeForm
+from member.forms import UserMergeForm, ProfileMergeForm
 
 import logging
 
@@ -107,24 +107,47 @@ class CustomUserAdmin(UserAdmin):
     list_filter = UserAdmin.list_filter + ("last_login",)
 
     def merge_users(self, request, queryset):
+        primary_user = queryset[0]
+        other_users = queryset[1:]
+
+        if not other_users:
+            self.message_user(request,
+                              "Not enough users to merge",
+                              level="error")
+            return HttpResponseRedirect(request.get_full_path())
+
+        profiles = Profile.objects.filter(user__in=queryset)
+
         if 'apply' in request.POST:
             # The user clicked submit on the intermediate form.
             # Perform our update action:
 
-            # TODO merge accounts
+            user_form = UserMergeForm(request.POST, instance=primary_user)
+            user_form.add_choices(queryset)
 
-            # Redirect to our admin view after our update has 
-            # completed with a nice little info message saying 
-            # our models have been updated:
-            self.message_user(request,
-                              "Merged {} users".format(queryset.count()))
-            return HttpResponseRedirect(request.get_full_path())
+            profile_form = ProfileMergeForm(request.POST, instance=primary_user.profile)
 
-        user_form = UserMergeForm(request.POST, instance=queryset[0])
-        user_form.fields['username'].choices = [(value,value) for value in queryset.values_list('username', flat=True) if value]
-        user_form.fields['first_name'].choices = [(value,value) for value in queryset.values_list('first_name', flat=True) if value]
-        user_form.fields['last_name'].choices = [(value,value) for value in queryset.values_list('last_name', flat=True) if value]
-        user_form.fields['email'].choices = [(value,value) for value in queryset.values_list('email', flat=True) if value]
+            if user_form.is_valid() and profile_form.is_valid() and False:
+
+                # TODO merge accounts
+
+                # Redirect to our admin view after our update has 
+                # completed with a nice little info message saying 
+                # our models have been updated:
+                self.message_user(request,
+                                  "Merged {} users".format(queryset.count()))
+                return HttpResponseRedirect(request.get_full_path())
+
+        else:
+            user_form = UserMergeForm(instance=primary_user)
+            user_form.add_choices(queryset)
+            profile_form = ProfileMergeForm(instance=primary_user.profile)
+            # profile_form.merge_values(profiles)
+        
+        # TODO add inlineformset_factory for emails
+        # EmailFormset = inlineformset_factory(EmailAddress, User)
+        # email_formset = EmailFormset(instance=primary_user)
+
         tourn_dict = {}
         for user in queryset:
             for tourn in user.tournament_set.all():
@@ -140,6 +163,7 @@ class CustomUserAdmin(UserAdmin):
             'opts': self.model._meta,
             'media': self.media,
             'user_form': user_form,
+            'profile_form': profile_form,
             }
 
         return render(request,

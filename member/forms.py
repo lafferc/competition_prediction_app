@@ -34,6 +34,29 @@ class UserMergeForm(forms.ModelForm):
     first_name = forms.ChoiceField(required=False)
     last_name = forms.ChoiceField(required=False)
     email = forms.ChoiceField(label="Primary Email")
+
+    def add_choices(self, queryset):
+        for field in self.fields.keys():
+            self.fields[field].choices = [(value,value) for value in queryset.values_list(field, flat=True) if value]
+
+
     class Meta:
         model = User
         fields = ['username', 'first_name', 'last_name', 'email']
+
+class ProfileMergeForm(forms.ModelForm):
+    # display_name_format = forms.ChoiceField()
+
+    def merge_values(self, queryset):
+        # for field in self.fields.keys():
+        #     self.fields[field].choices = [(value,value) for value in queryset.values_list(field, flat=True) if value]
+
+        for profile in queryset:
+            # self.fields['can_receive_emails'].value = self.fields['can_receive_emails'].value or profile.can_receive_emails
+            self.fields['can_receive_emails'].prepare_value(False)
+
+    class Meta:
+        model = Profile
+        exclude = ['user']
+        # fields = ['username', 'first_name', 'last_name', 'email']
+
