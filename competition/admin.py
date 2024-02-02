@@ -122,6 +122,7 @@ class MatchAdmin(admin.ModelAdmin):
         }),
     )
     search_fields = ['home_team__name', 'away_team__name']
+    autocomplete_fields = ['home_team', 'away_team']
 
     def get_readonly_fields(self, request, obj):
         if not obj:

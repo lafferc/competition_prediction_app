@@ -79,7 +79,7 @@ class Team(models.Model):
     sport = models.ForeignKey(Sport, models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.sport}"
 
     def validate_unique(self, exclude=None):
 
