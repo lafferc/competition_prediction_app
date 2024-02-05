@@ -1,9 +1,12 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
+from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from allauth.socialaccount.models import SocialApp
+from allauth.socialaccount.models import SocialApp, SocialAccount
+from allauth.account.models import EmailAddress
 from member.models import Profile, Organisation, Competition, Ticket
 from member.forms import UserMergeForm, ProfileMergeForm
 
@@ -118,6 +121,15 @@ class CustomUserAdmin(UserAdmin):
 
         profiles = Profile.objects.filter(user__in=queryset)
 
+        tourn_dict = {}
+        for user in queryset:
+            for tourn in user.tournament_set.all():
+                predictions_all = user.prediction_set.filter(match__tournament=tourn).count()
+                predictions_late = user.prediction_set.filter(match__tournament=tourn, late=True).count()
+                if tourn not in tourn_dict:
+                    tourn_dict[tourn] = []
+                tourn_dict[tourn].append((user, predictions_all, predictions_late))
+
         if 'apply' in request.POST:
             # The user clicked submit on the intermediate form.
             # Perform our update action:
@@ -127,9 +139,30 @@ class CustomUserAdmin(UserAdmin):
 
             profile_form = ProfileMergeForm(request.POST, instance=primary_user.profile)
 
-            if user_form.is_valid() and profile_form.is_valid() and False:
+            if user_form.is_valid() and profile_form.is_valid():
 
                 # TODO merge accounts
+
+                if tourn_dict:
+                    self.message_user(request,
+                                      "Cannot merge users that have join tournaments",
+                                      level="error")
+                    return HttpResponseRedirect(request.get_full_path())
+
+
+                for user in other_users:
+                    user.emailaddress_set.update(user=primary_user, primary=False)
+
+                # TODO set primary on chosen email address
+
+                # TODO delete all other_users
+                # for user in other_users:
+                #    Note: this will delete all FK objects also
+                #    user.delete()
+                #  
+
+                user_form.save()
+                profile_form.save()
 
                 # Redirect to our admin view after our update has 
                 # completed with a nice little info message saying 
@@ -141,21 +174,31 @@ class CustomUserAdmin(UserAdmin):
         else:
             user_form = UserMergeForm(instance=primary_user)
             user_form.add_choices(queryset)
-            profile_form = ProfileMergeForm(instance=primary_user.profile)
+
+
+            # set starting data for form
+            data = {
+                    'dob': primary_user.profile.dob,
+                    'can_receive_emails': primary_user.profile.can_receive_emails,
+                    'email_on_new_competition': primary_user.profile.email_on_new_competition,
+                    'test_features_enabled': primary_user.profile.test_features_enabled,
+                    'cookie_consent': primary_user.profile.cookie_consent,
+                    }
+
+            for user in other_users:
+                data['dob'] = data['dob'] or user.profile.dob
+                data['can_receive_emails'] = data['can_receive_emails'] or user.profile.can_receive_emails
+                data['email_on_new_competition'] = data['email_on_new_competition'] or user.profile.email_on_new_competition
+                data['test_features_enabled'] = data['test_features_enabled'] or user.profile.test_features_enabled
+                data['cookie_consent'] = min(data['cookie_consent'], user.profile.cookie_consent)
+
+            profile_form = ProfileMergeForm(instance=primary_user.profile, data=data)
             # profile_form.merge_values(profiles)
         
         # TODO add inlineformset_factory for emails
-        # EmailFormset = inlineformset_factory(EmailAddress, User)
-        # email_formset = EmailFormset(instance=primary_user)
-
-        tourn_dict = {}
-        for user in queryset:
-            for tourn in user.tournament_set.all():
-                predictions_all = user.prediction_set.filter(match__tournament=tourn).count()
-                predictions_late = user.prediction_set.filter(match__tournament=tourn, late=True).count()
-                if tourn not in tourn_dict:
-                    tourn_dict[tourn] = []
-                tourn_dict[tourn].append((user, predictions_all, predictions_late))
+        SocialAccountFormset = inlineformset_factory(get_user_model(), SocialAccount, exclude=['user'])
+        EmailAddressFormset = inlineformset_factory(get_user_model(), EmailAddress, exclude=['user'], extra=0)
+        email_formset = EmailAddressFormset(instance=primary_user)
 
         context = {
             'users':queryset,
@@ -164,6 +207,7 @@ class CustomUserAdmin(UserAdmin):
             'media': self.media,
             'user_form': user_form,
             'profile_form': profile_form,
+            'email_formset': email_formset,
             }
 
         return render(request,

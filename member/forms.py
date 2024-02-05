@@ -48,15 +48,15 @@ class ProfileMergeForm(forms.ModelForm):
     # display_name_format = forms.ChoiceField()
 
     def merge_values(self, queryset):
-        # for field in self.fields.keys():
-        #     self.fields[field].choices = [(value,value) for value in queryset.values_list(field, flat=True) if value]
-
-        for profile in queryset:
-            # self.fields['can_receive_emails'].value = self.fields['can_receive_emails'].value or profile.can_receive_emails
-            self.fields['can_receive_emails'].prepare_value(False)
+        pass
 
     class Meta:
         model = Profile
         exclude = ['user']
         # fields = ['username', 'first_name', 'last_name', 'email']
+
+        # widgets = {
+        #         'can_receive_emails': forms.CheckboxInput(attrs={'disabled': True}),
+        #         'email_on_new_competition': forms.TextInput(attrs={'disabled': True}),
+        #         }
 
