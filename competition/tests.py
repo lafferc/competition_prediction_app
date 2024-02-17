@@ -707,17 +707,34 @@ class HomePageContent(TestCase):
         cls.team_a = Team.objects.create(name='team A', code='AAA', sport=sport)
         cls.team_b = Team.objects.create(name='team B', code='BBB', sport=sport)
 
-        today = timezone.make_aware(datetime.datetime.combine(datetime.date.today(), datetime.time()))
+        now = timezone.make_aware(datetime.datetime.now())
 
-        cls.times_today = [
-            today + datetime.timedelta(hours=6),
-            today + datetime.timedelta(hours=12),
-            today + datetime.timedelta(hours=18),
+        cls.times_past_48 = [
+            now - datetime.timedelta(days=1, hours=24),
+            now - datetime.timedelta(days=1, hours=6),
         ]
-        cls.times_tomorrow = [
-            today + datetime.timedelta(days=1, hours=6),
-            today + datetime.timedelta(days=1, hours=12),
-            today + datetime.timedelta(days=1, hours=18),
+        cls.times_past_24 = [
+            now - datetime.timedelta(hours=23),
+            now - datetime.timedelta(hours=18),
+            now - datetime.timedelta(hours=12),
+            now - datetime.timedelta(hours=6),
+        ]
+        cls.times_next_24 = [
+            now + datetime.timedelta(hours=6),
+            now + datetime.timedelta(hours=12),
+            now + datetime.timedelta(hours=18),
+            now + datetime.timedelta(hours=23),
+        ]
+        cls.times_next_48 = [
+            now + datetime.timedelta(days=1, hours=6),
+            now + datetime.timedelta(days=1, hours=12),
+            now + datetime.timedelta(days=1, hours=18),
+            now + datetime.timedelta(days=1, hours=23),
+        ]
+
+        cls.times_next_72 = [
+            now + datetime.timedelta(days=2, hours=6),
+            now + datetime.timedelta(days=2, hours=12),
         ]
 
 
@@ -739,50 +756,61 @@ class HomePageContent(TestCase):
 
         self.assertEqual(len(response.context['closed_tournaments']), 1)
 
-    def test_todays_matches(self):
+    def test_recent_matches(self):
         for tourn in self.tourns:
-            for time in self.times_today:
+            for time in self.times_past_24 + self.times_past_48:
                 Match.objects.create(tournament=tourn, home_team=self.team_a, away_team=self.team_b, kick_off=time)
 
         response = self.client.get(reverse('competition:match_list_todaytomorrow'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'partial/match_list_todaytomorrow.html')
 
-        self.assertEqual(len(response.context['matches_today']), 6)
-        self.assertEqual(len(response.context['matches_tomorrow']), 0)
+        self.assertEqual(len(response.context['matches_recent']), 8)
+        self.assertEqual(len(response.context['matches_future']), 0)
 
-    def test_tomorrows_matches(self):
+    def test_future_matches(self):
         for tourn in self.tourns:
-            for time in self.times_tomorrow:
+            for time in self.times_next_24 + self.times_next_48 + self.times_next_72:
                 Match.objects.create(tournament=tourn, home_team=self.team_a, away_team=self.team_b, kick_off=time)
 
         response = self.client.get(reverse('competition:match_list_todaytomorrow'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'partial/match_list_todaytomorrow.html')
 
-        self.assertEqual(len(response.context['matches_today']), 0)
-        self.assertEqual(len(response.context['matches_tomorrow']), 6)
+        self.assertEqual(len(response.context['matches_recent']), 0)
+        self.assertEqual(len(response.context['matches_future']), 16)
 
-    def test_today_and_tomorrows_matches(self):
+    def test_recent_and_future_matches(self):
         for tourn in self.tourns:
-            for time in self.times_today + self.times_tomorrow:
+            for time in self.times_past_24 + self.times_next_24 + self.times_next_48:
                 Match.objects.create(tournament=tourn, home_team=self.team_a, away_team=self.team_b, kick_off=time)
 
         response = self.client.get(reverse('competition:match_list_todaytomorrow'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'partial/match_list_todaytomorrow.html')
 
-        self.assertEqual(len(response.context['matches_today']), 6)
-        self.assertEqual(len(response.context['matches_tomorrow']), 6)
+        self.assertEqual(len(response.context['matches_recent']), 8)
+        self.assertEqual(len(response.context['matches_future']), 16)
 
-    def test_no_matches_today_or_tomorrows(self):
+    def test_no_recent_and_future_matches(self):
+        for tourn in self.tourns:
+            for time in self.times_past_48 + self.times_next_72:
+                Match.objects.create(tournament=tourn, home_team=self.team_a, away_team=self.team_b, kick_off=time)
+
         response = self.client.get(reverse('competition:match_list_todaytomorrow'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'partial/match_list_todaytomorrow.html')
 
-        self.assertEqual(len(response.context['matches_today']), 0)
-        self.assertEqual(len(response.context['matches_tomorrow']), 0)
+        self.assertEqual(len(response.context['matches_recent']), 0)
+        self.assertEqual(len(response.context['matches_future']), 0)
 
+    def test_no_matches(self):
+        response = self.client.get(reverse('competition:match_list_todaytomorrow'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'partial/match_list_todaytomorrow.html')
+
+        self.assertEqual(len(response.context['matches_recent']), 0)
+        self.assertEqual(len(response.context['matches_future']), 0)
 
 
 class PredictionsAndMatches(TransactionTestCase):
