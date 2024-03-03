@@ -441,31 +441,28 @@ def match_list_todaytomorrow(request):
     user_tourns = Tournament.objects.filter(state=Tournament.ACTIVE,
                                             participant__user=request.user)
 
-    today = datetime.date.today()
-    matches_today = Match.objects.filter(
+    now = timezone.now()
+    last_24hrs = now - datetime.timedelta(days=1)
+    matches_recent = Match.objects.filter(
             tournament__in=user_tourns,
-            kick_off__year=today.year,
-            kick_off__month=today.month,
-            kick_off__day=today.day,
+            kick_off__gt=last_24hrs,
+            kick_off__lt=now,
             postponed=False
             ).order_by('kick_off')
 
-    tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-    matches_tomorrow = Match.objects.filter(
+    next_48hrs = now + datetime.timedelta(days=2)
+    matches_future = Match.objects.filter(
             tournament__in=user_tourns,
-            kick_off__year=tomorrow.year,
-            kick_off__month=tomorrow.month,
-            kick_off__day=tomorrow.day,
+            kick_off__gt=now,
+            kick_off__lt=next_48hrs,
             postponed=False
             ).order_by('kick_off')
 
-    matches_predicted = list(chain(
-        matches_today.filter(prediction__user=request.user),
-        matches_tomorrow.filter(prediction__user=request.user)))
+    matches_predicted = matches_future.filter(prediction__user=request.user)
 
     context = {
-        'matches_today': matches_today,
-        'matches_tomorrow': matches_tomorrow,
+        'matches_recent': matches_recent,
+        'matches_future': matches_future,
         'matches_predicted': matches_predicted,
         }
     return render(request, 'partial/match_list_todaytomorrow.html', context)

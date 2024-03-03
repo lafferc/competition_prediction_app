@@ -9,6 +9,8 @@ from django.urls import reverse
 from django.template.defaultfilters import slugify
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.text import capfirst, get_text_list
+from django.utils.translation import gettext_lazy as _
 from io import StringIO
 import logging
 import csv
@@ -77,26 +79,55 @@ class Team(models.Model):
     sport = models.ForeignKey(Sport, models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.sport}"
 
     def validate_unique(self, exclude=None):
+
+        super().validate_unique(exclude)
+
         def add_name_query(name):
             return Q(name=name)| Q(code=name)| Q(short_name=name)| Q(full_name=name)| Q(alt_name=name)
 
-        q = add_name_query(self.name)
-        if self.short_name:
-            q = q | add_name_query(self.short_name)
-        if self.full_name:
-            q = q | add_name_query(self.full_name)
-        if self.alt_name:
-            q = q | add_name_query(self.alt_name)
+        name_checks = [
+                ('name', self.name, False),
+                ('short_name', self.short_name, True),
+                ('full_name', self.full_name, True),
+                ('alt_name', self.alt_name, True)]
 
-        teams = self.sport.team_set.filter(q)
-        if len(teams) > 1:
-            raise ValidationError('Name must be unique per Sport')
+        errors = {}
+        for field_name, name, optional in name_checks:
+            if optional and name is None:
+                continue
 
-        if len(teams) == 1 and teams[0] != self:
-            raise ValidationError('Name used by another team. Names must be unique per Sport')
+            q = Q(name=name)| Q(code=name)| Q(short_name=name)| Q(full_name=name)| Q(alt_name=name)
+
+            qs = self.sport.team_set.filter(q)
+
+            if not self._state.adding and self.pk is not None:
+                qs = qs.exclude(pk=self.pk)
+
+            if qs.exists():
+                opts = self._meta
+                params = {
+                        'model': self,
+                        'model_class': self.__class__,
+                        'model_name': capfirst(opts.verbose_name),
+                        'unique_check': [field_name],
+                        }
+
+                field_labels = "name or short_name or full_name or alt_name"
+                params['field_labels'] = field_labels
+
+                errors.setdefault(field_name, []).append(
+                        ValidationError(
+                            message=_("%(model_name)s with this %(field_labels)s already exists."),
+                            code='unique',
+                            params=params,
+                            )
+                        )
+
+        if errors:
+            raise ValidationError(errors)
 
     class Meta:
         unique_together = (('code', 'sport'),

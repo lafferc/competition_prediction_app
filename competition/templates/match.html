@@ -19,13 +19,13 @@
 Match ID: {{match.match_id}}
 <br/>
 {% if match.home_team %}
-Home Team: {{ match.home_team }} 
+Home Team: {{ match.home_team.name }} 
 {% else %}
 Home Team: Winner of {{ match.home_team_winner_of }}
 {% endif %}
 <br/>
 {% if match.away_team %}
-Away Team: {{ match.away_team }} 
+Away Team: {{ match.away_team.name }} 
 {% else %}
 Away Team: Winner of {{ match.away_team_winner_of }}
 {% endif %}
