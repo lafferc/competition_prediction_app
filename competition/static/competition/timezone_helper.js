@@ -53,12 +53,12 @@ htmx.onLoad(function(elt){
     var x = elt.getElementsByClassName("toLocalTimeHM");
     for (i = 0; i < x.length; ++i) {
         elem = x[i]
-        elem.innerHTML = toLocalTimeHM(elem.innerHTML)
+        elem.innerHTML = toLocalTimeHM(elem.innerHTML.trim())
     }
 
     var list = elt.getElementsByClassName("toLocalTimeHMday");
     for (i = 0; i < list.length; ++i) {
         elem = list[i]
-        elem.innerHTML = toLocalTimeHMday(elem.innerHTML)
+        elem.innerHTML = toLocalTimeHMday(elem.innerHTML.trim())
     }
 });

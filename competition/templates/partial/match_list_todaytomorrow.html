@@ -7,7 +7,7 @@
         {% for match in matches_recent %}
             <li>
                 <a href="{% url 'competition:match' match.pk %}">{{ match }}</a>
-                (<span class="toLocalTimeHMday">{{match.kick_off|date:"c" }} </span>)
+                (<span class="toLocalTimeHMday">{{match.kick_off|date:"c"}}</span>)
             </li>
         {% endfor %}
         </ul>
