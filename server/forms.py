@@ -28,9 +28,10 @@ class SignUpForm(account.forms.SignupForm):
     def save(self, request):
         user = super(SignUpForm, self).save(request)
 
-        user.profile.display_name_format = self.cleaned_data['display_name_format']
-        user.profile.cookie_consent = self.cleaned_data['cookie_consent']
-        user.profile.save()
+        if user is not None:
+            user.profile.display_name_format = self.cleaned_data['display_name_format']
+            user.profile.cookie_consent = self.cleaned_data['cookie_consent']
+            user.profile.save()
 
         return user
 
@@ -42,8 +43,9 @@ class SocialSignupForm(socialaccount.forms.SignupForm):
     def save(self, request):
         user = super(SocialSignupForm, self).save(request)
 
-        user.profile.display_name_format = self.cleaned_data['display_name_format']
-        user.profile.cookie_consent = self.cleaned_data['cookie_consent']
-        user.profile.save()
+        if user is not None:
+            user.profile.display_name_format = self.cleaned_data['display_name_format']
+            user.profile.cookie_consent = self.cleaned_data['cookie_consent']
+            user.profile.save()
 
         return user
