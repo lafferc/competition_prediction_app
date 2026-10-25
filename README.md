@@ -6,7 +6,7 @@
 
 `./configure`
 
-`make install`
+`sudo -E make install`
 
 
 ## Upgrade steps
